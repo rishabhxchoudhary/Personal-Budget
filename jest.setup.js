@@ -19,3 +19,52 @@ global.BroadcastChannel = class BroadcastChannel {
   addEventListener() {}
   removeEventListener() {}
 };
+
+// Suppress specific console errors that are expected in tests
+const originalError = console.error;
+const originalWarn = console.warn;
+
+// Allow disabling console suppression via environment variable
+const suppressConsole = process.env.SUPPRESS_TEST_CONSOLE !== 'false';
+
+// Patterns for expected errors that should be suppressed
+const suppressedErrorPatterns = [
+  // React act() warnings for expected async state updates
+  /was not wrapped in act/,
+  /inside a test was not wrapped in act/,
+  // Expected API errors from tests
+  /Error fetching transactions/,
+  /Sign in error/,
+  /Server error/,
+  /Failed to fetch/,
+  /Auth error/,
+];
+
+console.error = (...args) => {
+  if (!suppressConsole) {
+    originalError(...args);
+    return;
+  }
+
+  const message = args[0]?.toString() || '';
+  const shouldSuppress = suppressedErrorPatterns.some((pattern) => pattern.test(message));
+
+  if (!shouldSuppress) {
+    originalError(...args);
+  }
+};
+
+console.warn = (...args) => {
+  if (!suppressConsole) {
+    originalWarn(...args);
+    return;
+  }
+
+  // Add any warning patterns to suppress here if needed
+  originalWarn(...args);
+};
+
+// Note: Console methods are overridden for all tests
+// Original methods are stored but not restored to maintain consistency
+// To disable suppression and see all console output, run tests with:
+// SUPPRESS_TEST_CONSOLE=false pnpm test

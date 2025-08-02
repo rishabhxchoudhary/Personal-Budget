@@ -1,30 +1,32 @@
 import { useState, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import { TransactionFormData } from '../utils/validation';
 
-export type Transaction = TransactionFormData & {
+export type Transaction = {
   id: string;
+  amount: string;
+  date: string;
+  category: string;
+  type: 'income' | 'expense';
+  note?: string;
   createdAt: string;
+  userId?: string;
 };
 
-export type TransactionFilter = {
-  type?: 'all' | 'income' | 'expense';
-  page?: number;
-  limit?: number;
-};
+export type TransactionFilter = 'all' | 'income' | 'expense';
 
 export type UseTransactionsReturn = {
   transactions: Transaction[];
-  totalCount: number;
-  createTransaction: (data: TransactionFormData) => Promise<Transaction>;
-  fetchTransactions: (filter?: TransactionFilter) => Promise<void>;
   isLoading: boolean;
   error: string | null;
+  fetchTransactions: (filter?: TransactionFilter) => Promise<void>;
+  createTransaction: (data: TransactionFormData) => Promise<Transaction>;
   clearError: () => void;
 };
 
 export function useTransactions(): UseTransactionsReturn {
+  const { data: session, status } = useSession();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,87 +34,112 @@ export function useTransactions(): UseTransactionsReturn {
     setError(null);
   }, []);
 
-  const fetchTransactions = useCallback(async (filter?: TransactionFilter) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const params = new URLSearchParams();
-      if (filter?.type && filter.type !== 'all') {
-        params.append('type', filter.type);
-      }
-      if (filter?.page) {
-        params.append('page', filter.page.toString());
-      }
-      if (filter?.limit) {
-        params.append('limit', filter.limit.toString());
+  const fetchTransactions = useCallback(
+    async (filter: TransactionFilter = 'all') => {
+      // Don't fetch if not authenticated
+      if (status === 'loading') return;
+      if (status === 'unauthenticated' || !session?.user) {
+        setError('Please sign in to view your transactions');
+        return;
       }
 
-      const response = await fetch(`/api/transactions?${params.toString()}`);
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to fetch transactions');
+        const params = new URLSearchParams();
+        if (filter !== 'all') {
+          params.append('type', filter);
+        }
+        // Include user ID in the query
+        params.append('userId', session.user.id);
+
+        const response = await fetch(`/api/transactions?${params.toString()}`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Please sign in to view your transactions');
+          }
+          const errorData = await response
+            .json()
+            .catch(() => ({ error: 'Failed to fetch transactions' }));
+          throw new Error(errorData.error || 'Failed to fetch transactions');
+        }
+
+        const data = await response.json();
+        setTransactions(data.transactions || []);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+        setError(message);
+        console.error('Error fetching transactions:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [session, status],
+  );
+
+  const createTransaction = useCallback(
+    async (data: TransactionFormData): Promise<Transaction> => {
+      // Check authentication
+      if (status === 'unauthenticated' || !session?.user) {
+        throw new Error('Please sign in to add transactions');
       }
 
-      const data = await response.json();
-      setTransactions(data.transactions || []);
-      setTotalCount(data.totalCount || 0);
-    } catch (err) {
-      if (err instanceof TypeError && err.message === 'Failed to fetch') {
-        setError('Network error. Please try again.');
-      } else if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unexpected error occurred');
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const response = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            ...data,
+            userId: session.user.id,
+          }),
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Please sign in to add transactions');
+          }
+          const errorData = await response
+            .json()
+            .catch(() => ({ error: 'Failed to save transaction' }));
+          throw new Error(errorData.error || 'Failed to save transaction');
+        }
+
+        const newTransaction = await response.json();
+
+        // Add the new transaction to the list
+        setTransactions((prev) => [newTransaction, ...prev]);
+
+        return newTransaction;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
       }
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const createTransaction = useCallback(async (data: TransactionFormData): Promise<Transaction> => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/transactions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to save transaction`);
-      }
-
-      const transaction = await response.json();
-      return transaction;
-    } catch (err) {
-      if (err instanceof TypeError && err.message === 'Failed to fetch') {
-        setError('Network error. Please try again.');
-      } else if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unexpected error occurred');
-      }
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    [session, status],
+  );
 
   return {
     transactions,
-    totalCount,
-    createTransaction,
-    fetchTransactions,
     isLoading,
     error,
+    fetchTransactions,
+    createTransaction,
     clearError,
   };
 }

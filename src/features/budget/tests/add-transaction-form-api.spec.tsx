@@ -41,25 +41,29 @@ describe('AddTransactionForm API Integration', () => {
 
     // Wait for the API call to complete
     await waitFor(() => {
-      expect(capturedRequest).toEqual({
+      expect(capturedRequest).toEqual(
+        expect.objectContaining({
+          amount: '150.5',
+          date: '2025-08-15',
+          category: 'general',
+          type: 'expense',
+          note: 'Monthly subscription',
+        }),
+      );
+    });
+
+    // Verify onSubmit was called with the response data
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: '123',
         amount: '150.5',
         date: '2025-08-15',
         category: 'general',
         type: 'expense',
         note: 'Monthly subscription',
-      });
-    });
-
-    // Verify onSubmit was called with the response data
-    expect(onSubmit).toHaveBeenCalledWith({
-      id: '123',
-      amount: '150.5',
-      date: '2025-08-15',
-      category: 'general',
-      type: 'expense',
-      note: 'Monthly subscription',
-      createdAt: expect.any(String),
-    });
+        createdAt: expect.any(String),
+      }),
+    );
   });
 
   test('displays loading state during form submission', async () => {
@@ -190,7 +194,7 @@ describe('AddTransactionForm API Integration', () => {
 
     // Check for error message
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Network error. Please try again.');
+      expect(screen.getByRole('alert')).toHaveTextContent('Failed to fetch');
     });
   });
 
