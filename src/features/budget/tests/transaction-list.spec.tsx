@@ -117,7 +117,9 @@ describe('TransactionList', () => {
 
     // Check headers
     expect(screen.getByText(/date/i)).toBeInTheDocument();
-    expect(screen.getByText(/type/i)).toBeInTheDocument();
+    // Use getAllByText since there's also a filter label with "type"
+    const typeElements = screen.getAllByText(/type/i);
+    expect(typeElements.length).toBeGreaterThanOrEqual(2); // Filter label and table header
     expect(screen.getByText(/category/i)).toBeInTheDocument();
     expect(screen.getByText(/amount/i)).toBeInTheDocument();
     expect(screen.getByText(/note/i)).toBeInTheDocument();
