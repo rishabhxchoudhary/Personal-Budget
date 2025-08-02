@@ -1,4 +1,20 @@
+'use client';
+
 import React, { useState } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export type Transaction = {
   id: string;
@@ -26,9 +42,11 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
 
   if (filteredTransactions.length === 0) {
     return (
-      <div>
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="filter-type">Filter by type:</label>
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="filter-type" className="text-sm font-medium">
+            Filter by type:
+          </Label>
           <select
             id="filter-type"
             value={filterType}
@@ -36,13 +54,18 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
               setFilterType(e.target.value as 'all' | 'income' | 'expense');
               setCurrentPage(1); // Reset to first page when filter changes
             }}
+            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="all">All</option>
             <option value="income">Income</option>
             <option value="expense">Expense</option>
           </select>
         </div>
-        <div>No transactions found</div>
+        <Card>
+          <CardContent className="flex items-center justify-center py-16">
+            <p className="text-muted-foreground">No transactions found</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -68,9 +91,11 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: '1rem' }}>
-        <label htmlFor="filter-type">Filter by type:</label>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Label htmlFor="filter-type" className="text-sm font-medium">
+          Filter by type:
+        </Label>
         <select
           id="filter-type"
           value={filterType}
@@ -78,6 +103,7 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
             setFilterType(e.target.value as 'all' | 'income' | 'expense');
             setCurrentPage(1); // Reset to first page when filter changes
           }}
+          className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="all">All</option>
           <option value="income">Income</option>
@@ -85,39 +111,91 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
         </select>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Category</th>
-            <th>Amount</th>
-            <th>Note</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentTransactions.map((transaction) => (
-            <tr key={transaction.id} data-transaction-type={transaction.type}>
-              <td>{transaction.date}</td>
-              <td>{transaction.type}</td>
-              <td>{transaction.category}</td>
-              <td>{formatAmount(transaction.amount, transaction.type)}</td>
-              <td>{transaction.note}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Card className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead className="w-[120px]">Date</TableHead>
+              <TableHead className="w-[100px]">Type</TableHead>
+              <TableHead className="w-[120px]">Category</TableHead>
+              <TableHead className="w-[120px] text-right">Amount</TableHead>
+              <TableHead>Note</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {currentTransactions.map((transaction) => (
+              <TableRow
+                key={transaction.id}
+                data-transaction-type={transaction.type}
+                className="hover:bg-muted/50 transition-colors"
+              >
+                <TableCell className="font-medium">{transaction.date}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={transaction.type === 'income' ? 'secondary' : 'outline'}
+                    className={cn(
+                      'font-medium',
+                      transaction.type === 'income'
+                        ? 'bg-green-100 text-green-800 hover:bg-green-100'
+                        : 'bg-red-100 text-red-800 hover:bg-red-100',
+                    )}
+                  >
+                    <span className="flex items-center gap-1">
+                      {transaction.type === 'income' ? (
+                        <TrendingUp className="h-3 w-3" />
+                      ) : (
+                        <TrendingDown className="h-3 w-3" />
+                      )}
+                      {transaction.type}
+                    </span>
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="font-normal">
+                    {transaction.category}
+                  </Badge>
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    'text-right font-semibold',
+                    transaction.type === 'income' ? 'text-green-600' : 'text-red-600',
+                  )}
+                >
+                  {formatAmount(transaction.amount, transaction.type)}
+                </TableCell>
+                <TableCell className="text-muted-foreground">{transaction.note}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
 
-      <div>
-        <span>
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">
           Showing {startIndex + 1}-{endIndex} of {filteredTransactions.length}
         </span>
-        <button onClick={handlePreviousPage} disabled={currentPage === 1}>
-          Previous
-        </button>
-        <button onClick={handleNextPage} disabled={currentPage === totalPages}>
-          Next
-        </button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+            className="gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className="gap-1"
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

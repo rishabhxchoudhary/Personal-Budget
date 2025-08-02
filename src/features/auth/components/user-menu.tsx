@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 export type UserMenuProps = {
   className?: string;
@@ -57,29 +58,14 @@ export function UserMenu({ className }: UserMenuProps) {
   const { user } = session;
 
   return (
-    <div className={className} style={{ position: 'relative' }} onKeyDown={handleKeyDown}>
+    <div className={cn('relative', className)} onKeyDown={handleKeyDown}>
       <button
         onClick={toggleMenu}
         aria-label="User menu"
         aria-expanded={isOpen}
         aria-haspopup="true"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.5rem',
-          backgroundColor: 'transparent',
-          border: '1px solid #e0e0e0',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#f5f5f5';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'transparent';
-        }}
+        id="user-menu-button"
+        className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors"
       >
         {user.image ? (
           <Image
@@ -87,31 +73,16 @@ export function UserMenu({ className }: UserMenuProps) {
             alt={`${user.name || 'User'} avatar`}
             width={32}
             height={32}
-            style={{
-              borderRadius: '50%',
-              objectFit: 'cover',
-            }}
+            className="rounded-full"
+            style={{ objectFit: 'cover' }}
+            data-testid="user-avatar"
           />
         ) : (
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: '#6366f1',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '14px',
-            }}
-            aria-hidden="true"
-          >
+          <div className="flex items-center justify-center w-8 h-8 text-sm font-semibold text-white bg-indigo-600 rounded-full">
             {user.name?.charAt(0).toUpperCase() || 'U'}
           </div>
         )}
-        <span style={{ fontSize: '14px', fontWeight: '500' }}>{user.name || 'User'}</span>
+        <span className="hidden sm:inline-block">{user.name || 'User'}</span>
         <svg
           width="16"
           height="16"
@@ -152,79 +123,21 @@ export function UserMenu({ className }: UserMenuProps) {
             role="menu"
             aria-orientation="vertical"
             aria-labelledby="user-menu-button"
-            style={{
-              position: 'absolute',
-              top: '100%',
-              right: 0,
-              marginTop: '0.5rem',
-              width: '240px',
-              backgroundColor: 'white',
-              border: '1px solid #e0e0e0',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-              zIndex: 50,
-              padding: '0.5rem',
-            }}
+            className="absolute right-0 z-50 w-64 mt-2 origin-top-right bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700"
           >
             {/* User info section */}
-            <div
-              style={{
-                padding: '0.75rem',
-                borderBottom: '1px solid #e0e0e0',
-                marginBottom: '0.5rem',
-              }}
-            >
-              <p
-                style={{
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#111827',
-                  margin: 0,
-                }}
-              >
-                {user.name}
-              </p>
-              <p
-                style={{
-                  fontSize: '12px',
-                  color: '#6b7280',
-                  margin: '0.25rem 0 0 0',
-                }}
-              >
-                {user.email}
-              </p>
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{user.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{user.email}</p>
             </div>
 
             {/* Menu items */}
-            <div role="none">
+            <div className="py-1" role="none">
               <button
                 role="menuitem"
                 onClick={handleSignOut}
                 disabled={isSigningOut}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.75rem',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  color: '#374151',
-                  cursor: isSigningOut ? 'not-allowed' : 'pointer',
-                  opacity: isSigningOut ? 0.6 : 1,
-                  transition: 'all 0.2s ease',
-                  textAlign: 'left',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSigningOut) {
-                    e.currentTarget.style.backgroundColor = '#f3f4f6';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
+                className="flex items-center w-full gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                 aria-busy={isSigningOut}
               >
                 <svg

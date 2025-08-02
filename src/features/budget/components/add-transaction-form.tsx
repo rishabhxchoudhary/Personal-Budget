@@ -1,6 +1,15 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { transactionFormSchema, TransactionFormData } from '../utils/validation';
 import { useTransactions } from '../hooks/useTransactions';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export type AddTransactionFormProps = {
   onSubmit: (data: unknown) => void;
@@ -78,122 +87,177 @@ export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFo
   }, [amount, date, category, selectedType, note, apiError, clearError, useApi]);
 
   return (
-    <form data-testid="add-transaction-form" onSubmit={handleSubmit} noValidate>
-      {useApi && apiError && (
-        <div id="api-error" role="alert" style={{ color: 'red', marginBottom: '1rem' }}>
-          {apiError}
-        </div>
-      )}
-      {useApi && successMessage && (
-        <div style={{ color: 'green', marginBottom: '1rem' }}>{successMessage}</div>
-      )}
-      <label htmlFor="amount">Amount</label>
-      <input
-        id="amount"
-        name="amount"
-        type="number"
-        inputMode="decimal"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        aria-required="true"
-        aria-invalid={!!errors.amount}
-        aria-describedby={errors.amount ? 'amount-error' : undefined}
-      />
-      {errors.amount && (
-        <span id="amount-error" role="alert" style={{ color: 'red', fontSize: '0.875rem' }}>
-          {errors.amount}
-        </span>
-      )}
+    <Card className="border-border/50 shadow-sm">
+      <CardContent className="pt-6">
+        <form
+          data-testid="add-transaction-form"
+          onSubmit={handleSubmit}
+          noValidate
+          className="space-y-4"
+        >
+          {useApi && apiError && (
+            <div
+              id="api-error"
+              role="alert"
+              className="relative w-full rounded-lg border p-4 border-destructive/50 bg-destructive/10 text-destructive dark:border-destructive"
+            >
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 mt-0.5" />
+                <div className="text-sm">{apiError}</div>
+              </div>
+            </div>
+          )}
+          {useApi && successMessage && (
+            <div className="relative w-full rounded-lg border p-4 border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100">
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5" />
+                <div className="text-sm">{successMessage}</div>
+              </div>
+            </div>
+          )}
 
-      <label htmlFor="date">Date</label>
-      <input
-        id="date"
-        name="date"
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        aria-required="true"
-        placeholder="YYYY-MM-DD"
-        aria-invalid={!!errors.date}
-        aria-describedby={errors.date ? 'date-error' : undefined}
-      />
-      {errors.date && (
-        <span id="date-error" role="alert" style={{ color: 'red', fontSize: '0.875rem' }}>
-          {errors.date}
-        </span>
-      )}
+          <div className="space-y-2">
+            <Label htmlFor="amount" className="text-sm font-medium">
+              Amount
+            </Label>
+            <Input
+              id="amount"
+              name="amount"
+              type="number"
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              aria-required="true"
+              aria-invalid={!!errors.amount}
+              aria-describedby={errors.amount ? 'amount-error' : undefined}
+              className={errors.amount ? 'border-destructive' : ''}
+              placeholder="0.00"
+            />
+            {errors.amount && (
+              <span id="amount-error" role="alert" className="text-sm text-destructive">
+                {errors.amount}
+              </span>
+            )}
+          </div>
 
-      <label htmlFor="category">Category</label>
-      <select
-        id="category"
-        name="category"
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-        aria-required="true"
-      >
-        <option value="">Select</option>
-        <option value="general">General</option>
-      </select>
-      {errors.category && (
-        <span id="category-error" role="alert" style={{ color: 'red', fontSize: '0.875rem' }}>
-          {errors.category}
-        </span>
-      )}
+          <div className="space-y-2">
+            <Label htmlFor="date" className="text-sm font-medium">
+              Date
+            </Label>
+            <Input
+              id="date"
+              name="date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              aria-required="true"
+              placeholder="YYYY-MM-DD"
+              aria-invalid={!!errors.date}
+              aria-describedby={errors.date ? 'date-error' : undefined}
+              className={errors.date ? 'border-destructive' : ''}
+            />
+            {errors.date && (
+              <span id="date-error" role="alert" className="text-sm text-destructive">
+                {errors.date}
+              </span>
+            )}
+          </div>
 
-      <fieldset>
-        <legend>Type</legend>
-        {/* Note: Using separate names for radio buttons to ensure they are individually
-            focusable during tab navigation. This deviates from standard radio group
-            behavior but is required to meet test expectations. The controlled state
-            ensures only one can be selected at a time. */}
-        <div>
-          <input
-            id="type-income"
-            type="radio"
-            name="type-income"
-            value="income"
-            checked={selectedType === 'income'}
-            onChange={() => handleTypeChange('income')}
-          />
-          <label htmlFor="type-income">Income</label>
-        </div>
-        <div>
-          <input
-            id="type-expense"
-            type="radio"
-            name="type-expense"
-            value="expense"
-            checked={selectedType === 'expense'}
-            onChange={() => handleTypeChange('expense')}
-          />
-          <label htmlFor="type-expense">Expense</label>
-        </div>
-      </fieldset>
-      {errors.type && (
-        <span id="type-error" role="alert" style={{ color: 'red', fontSize: '0.875rem' }}>
-          {errors.type}
-        </span>
-      )}
+          <div className="space-y-2">
+            <Label htmlFor="category" className="text-sm font-medium">
+              Category
+            </Label>
+            <select
+              id="category"
+              name="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              aria-required="true"
+              className={cn(
+                'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                errors.category && 'border-destructive',
+              )}
+            >
+              <option value="">Select</option>
+              <option value="general">General</option>
+            </select>
+            {errors.category && (
+              <span id="category-error" role="alert" className="text-sm text-destructive">
+                {errors.category}
+              </span>
+            )}
+          </div>
 
-      <label htmlFor="note">Note</label>
-      <textarea
-        id="note"
-        name="note"
-        rows={2}
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        aria-invalid={!!errors.note}
-        aria-describedby={errors.note ? 'note-error' : undefined}
-      />
-      {errors.note && (
-        <span id="note-error" role="alert" style={{ color: 'red', fontSize: '0.875rem' }}>
-          {errors.note}
-        </span>
-      )}
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-medium">Type</legend>
+            <div className="space-y-2">
+              {/* Note: Using separate names for radio buttons to ensure they are individually
+                  focusable during tab navigation. This deviates from standard radio group
+                  behavior but is required to meet test expectations. The controlled state
+                  ensures only one can be selected at a time. */}
+              <div className="flex items-center space-x-2">
+                <input
+                  id="type-income"
+                  type="radio"
+                  name="type-income"
+                  value="income"
+                  checked={selectedType === 'income'}
+                  onChange={() => handleTypeChange('income')}
+                  className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary"
+                />
+                <Label htmlFor="type-income" className="text-sm font-normal cursor-pointer">
+                  Income
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  id="type-expense"
+                  type="radio"
+                  name="type-expense"
+                  value="expense"
+                  checked={selectedType === 'expense'}
+                  onChange={() => handleTypeChange('expense')}
+                  className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary"
+                />
+                <Label htmlFor="type-expense" className="text-sm font-normal cursor-pointer">
+                  Expense
+                </Label>
+              </div>
+            </div>
+            {errors.type && (
+              <span id="type-error" role="alert" className="text-sm text-destructive">
+                {errors.type}
+              </span>
+            )}
+          </fieldset>
 
-      <button type="submit" disabled={useApi && isLoading}>
-        {useApi && isLoading ? 'Adding...' : 'Add Transaction'}
-      </button>
-    </form>
+          <div className="space-y-2">
+            <Label htmlFor="note" className="text-sm font-medium">
+              Note
+            </Label>
+            <Textarea
+              id="note"
+              name="note"
+              rows={2}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              aria-invalid={!!errors.note}
+              aria-describedby={errors.note ? 'note-error' : undefined}
+              className={errors.note ? 'border-destructive' : ''}
+              placeholder="Optional note..."
+            />
+            {errors.note && (
+              <span id="note-error" role="alert" className="text-sm text-destructive">
+                {errors.note}
+              </span>
+            )}
+          </div>
+
+          <Button type="submit" disabled={useApi && isLoading} className="w-full" size="lg">
+            {useApi && isLoading ? 'Adding...' : 'Add Transaction'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

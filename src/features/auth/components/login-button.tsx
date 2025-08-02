@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { signIn } from 'next-auth/react';
 
+import { cn } from '@/lib/utils';
+
 export type LoginButtonProps = {
   callbackUrl?: string;
   className?: string;
@@ -11,6 +13,7 @@ export type LoginButtonProps = {
 export function LoginButton({ callbackUrl = '/', className }: LoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -30,41 +33,33 @@ export function LoginButton({ callbackUrl = '/', className }: LoginButtonProps) 
   };
 
   return (
-    <div>
+    <div className="w-full max-w-sm space-y-4">
       {error && (
-        <div role="alert" aria-live="polite" style={{ color: 'red', marginBottom: '1rem' }}>
-          {error}
+        <div
+          role="alert"
+          aria-live="polite"
+          className="relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive"
+        >
+          <div className="text-sm [&_p]:leading-relaxed">{error}</div>
         </div>
       )}
       <button
         onClick={handleGoogleSignIn}
         disabled={isLoading}
-        className={className}
+        className={cn(
+          'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+          'w-full h-12 relative bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-medium shadow-sm transition-all duration-200 hover:shadow-md px-4 py-2',
+          className,
+        )}
         aria-label="Sign in with Google"
         aria-busy={isLoading}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.75rem 1.5rem',
-          backgroundColor: '#fff',
-          color: '#3c4043',
-          border: '1px solid #dadce0',
-          borderRadius: '4px',
-          fontSize: '14px',
-          fontWeight: '500',
+          backgroundColor: isHovered && !isLoading ? '#f8f9fa' : '#fff',
           cursor: isLoading ? 'not-allowed' : 'pointer',
           opacity: isLoading ? 0.6 : 1,
-          transition: 'all 0.2s ease',
         }}
-        onMouseEnter={(e) => {
-          if (!isLoading) {
-            e.currentTarget.style.backgroundColor = '#f8f9fa';
-          }
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#fff';
-        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
         {/* Google Icon SVG */}
         <svg
@@ -72,7 +67,7 @@ export function LoginButton({ callbackUrl = '/', className }: LoginButtonProps) 
           height="18"
           viewBox="0 0 48 48"
           aria-hidden="true"
-          style={{ marginRight: '0.25rem' }}
+          className="absolute left-4"
         >
           <path
             fill="#EA4335"
@@ -91,7 +86,7 @@ export function LoginButton({ callbackUrl = '/', className }: LoginButtonProps) 
             d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
           />
         </svg>
-        <span>{isLoading ? 'Signing in...' : 'Sign in with Google'}</span>
+        <span className="ml-6">{isLoading ? 'Signing in...' : 'Sign in with Google'}</span>
       </button>
     </div>
   );
