@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { transactionFormSchema, TransactionFormData } from '../utils/validation';
 
 export type AddTransactionFormProps = { onSubmit: (data: unknown) => void };
 
@@ -10,13 +11,34 @@ export function AddTransactionForm({ onSubmit }: AddTransactionFormProps) {
   const [date, setDate] = useState<string>('');
   const [category, setCategory] = useState<string>('');
   const [note, setNote] = useState<string>('');
-
-  const isFormValid = !!(amount && date && category && selectedType);
+  const [errors, setErrors] = useState<Partial<Record<keyof TransactionFormData, string>>>({});
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (isFormValid) {
-      onSubmit({ amount, date, category, type: selectedType, note });
+
+    const formData = {
+      amount,
+      date,
+      category,
+      type: selectedType,
+      note,
+    };
+    const result = transactionFormSchema.safeParse(formData);
+
+    if (result.success) {
+      setErrors({});
+      onSubmit(result.data);
+    } else {
+      const fieldErrors: Partial<Record<keyof TransactionFormData, string>> = {};
+      if (result.error) {
+        result.error.issues.forEach((error) => {
+          const fieldName = error.path[0] as keyof TransactionFormData;
+          if (fieldName && !fieldErrors[fieldName]) {
+            fieldErrors[fieldName] = error.message;
+          }
+        });
+      }
+      setErrors(fieldErrors);
     }
   };
 
@@ -33,7 +55,14 @@ export function AddTransactionForm({ onSubmit }: AddTransactionFormProps) {
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         aria-required="true"
+        aria-invalid={!!errors.amount}
+        aria-describedby={errors.amount ? 'amount-error' : undefined}
       />
+      {errors.amount && (
+        <span id="amount-error" role="alert" style={{ color: 'red', fontSize: '0.875rem' }}>
+          {errors.amount}
+        </span>
+      )}
 
       <label htmlFor="date">Date</label>
       <input
@@ -44,7 +73,14 @@ export function AddTransactionForm({ onSubmit }: AddTransactionFormProps) {
         onChange={(e) => setDate(e.target.value)}
         aria-required="true"
         placeholder="YYYY-MM-DD"
+        aria-invalid={!!errors.date}
+        aria-describedby={errors.date ? 'date-error' : undefined}
       />
+      {errors.date && (
+        <span id="date-error" role="alert" style={{ color: 'red', fontSize: '0.875rem' }}>
+          {errors.date}
+        </span>
+      )}
 
       <label htmlFor="category">Category</label>
       <select
@@ -57,6 +93,11 @@ export function AddTransactionForm({ onSubmit }: AddTransactionFormProps) {
         <option value="">Select</option>
         <option value="general">General</option>
       </select>
+      {errors.category && (
+        <span id="category-error" role="alert" style={{ color: 'red', fontSize: '0.875rem' }}>
+          {errors.category}
+        </span>
+      )}
 
       <fieldset>
         <legend>Type</legend>
@@ -87,6 +128,11 @@ export function AddTransactionForm({ onSubmit }: AddTransactionFormProps) {
           <label htmlFor="type-expense">Expense</label>
         </div>
       </fieldset>
+      {errors.type && (
+        <span id="type-error" role="alert" style={{ color: 'red', fontSize: '0.875rem' }}>
+          {errors.type}
+        </span>
+      )}
 
       <label htmlFor="note">Note</label>
       <textarea
@@ -95,23 +141,16 @@ export function AddTransactionForm({ onSubmit }: AddTransactionFormProps) {
         rows={2}
         value={note}
         onChange={(e) => setNote(e.target.value)}
+        aria-invalid={!!errors.note}
+        aria-describedby={errors.note ? 'note-error' : undefined}
       />
+      {errors.note && (
+        <span id="note-error" role="alert" style={{ color: 'red', fontSize: '0.875rem' }}>
+          {errors.note}
+        </span>
+      )}
 
-      <button
-        type="submit"
-        {...(!isFormValid && { 'aria-disabled': 'true' })}
-        style={{
-          opacity: isFormValid ? 1 : 0.6,
-          cursor: isFormValid ? 'pointer' : 'not-allowed',
-        }}
-        onClick={(e) => {
-          if (!isFormValid) {
-            e.preventDefault();
-          }
-        }}
-      >
-        Add Transaction
-      </button>
+      <button type="submit">Add Transaction</button>
     </form>
   );
 }

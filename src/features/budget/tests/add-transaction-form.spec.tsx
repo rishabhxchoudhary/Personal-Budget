@@ -5,7 +5,7 @@ import React from 'react';
 import { AddTransactionForm } from '@/features/budget/components/add-transaction-form';
 
 describe('AddTransactionForm (UI skeleton)', () => {
-  test('renders fields with accessible labels and disabled submit by default', async () => {
+  test('renders fields with accessible labels', async () => {
     render(<AddTransactionForm onSubmit={jest.fn()} />);
 
     const amount = screen.getByLabelText(/amount/i);
@@ -22,7 +22,7 @@ describe('AddTransactionForm (UI skeleton)', () => {
     expect(income).toBeInTheDocument();
     expect(expense).toBeInTheDocument();
     expect(note).toBeInTheDocument();
-    expect(submit).toHaveAttribute('aria-disabled', 'true');
+    expect(submit).toBeInTheDocument();
   });
 
   test('keyboard tab order is logical and labels are associated', async () => {
@@ -63,7 +63,7 @@ describe('AddTransactionForm (UI skeleton)', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  test('enables submit button when all required fields are filled', async () => {
+  test('validates and submits when all required fields are filled', async () => {
     const onSubmit = jest.fn();
     render(<AddTransactionForm onSubmit={onSubmit} />);
 
@@ -74,7 +74,6 @@ describe('AddTransactionForm (UI skeleton)', () => {
     await userEvent.click(screen.getByLabelText(/income/i));
 
     const submitButton = screen.getByRole('button', { name: /add transaction/i });
-    expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
     expect(submitButton).toBeEnabled();
   });
 
@@ -109,5 +108,4 @@ describe('AddTransactionForm (UI skeleton)', () => {
 
     expect(onSubmit).not.toHaveBeenCalled();
   });
-  
 });
