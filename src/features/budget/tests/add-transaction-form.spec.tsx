@@ -62,4 +62,52 @@ describe('AddTransactionForm (UI skeleton)', () => {
 
     expect(onSubmit).not.toHaveBeenCalled();
   });
+
+  test('enables submit button when all required fields are filled', async () => {
+    const onSubmit = jest.fn();
+    render(<AddTransactionForm onSubmit={onSubmit} />);
+
+    // Fill in fields
+    await userEvent.type(screen.getByLabelText(/amount/i), '100');
+    await userEvent.type(screen.getByLabelText(/date/i), '2025-08-01');
+    await userEvent.selectOptions(screen.getByLabelText(/category/i), 'general');
+    await userEvent.click(screen.getByLabelText(/income/i));
+
+    const submitButton = screen.getByRole('button', { name: /add transaction/i });
+    expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
+    expect(submitButton).toBeEnabled();
+  });
+
+  test('calls onSubmit when form is valid', async () => {
+    const onSubmit = jest.fn();
+    render(<AddTransactionForm onSubmit={onSubmit} />);
+
+    // Fill in fields
+    await userEvent.type(screen.getByLabelText(/amount/i), '100');
+    await userEvent.type(screen.getByLabelText(/date/i), '2025-08-01');
+    await userEvent.selectOptions(screen.getByLabelText(/category/i), 'general');
+    await userEvent.click(screen.getByLabelText(/income/i));
+
+    const submitButton = screen.getByRole('button', { name: /add transaction/i });
+    await userEvent.click(submitButton);
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      amount: '100',
+      date: '2025-08-01',
+      category: 'general',
+      type: 'income',
+      note: '', // Default blank for now
+    });
+  });
+
+  test('does not invoke onSubmit when required fields are missing', async () => {
+    const onSubmit = jest.fn();
+    render(<AddTransactionForm onSubmit={onSubmit} />);
+
+    const submitButton = screen.getByRole('button', { name: /add transaction/i });
+    await userEvent.click(submitButton);
+
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+  
 });
