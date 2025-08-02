@@ -6,7 +6,7 @@ import { AddTransactionForm } from '@/features/budget/components/add-transaction
 
 describe('AddTransactionForm (UI skeleton)', () => {
   test('renders fields with accessible labels', async () => {
-    render(<AddTransactionForm onSubmit={jest.fn()} />);
+    render(<AddTransactionForm onSubmit={jest.fn()} useApi={false} />);
 
     const amount = screen.getByLabelText(/amount/i);
     const date = screen.getByLabelText(/date/i);
@@ -27,7 +27,7 @@ describe('AddTransactionForm (UI skeleton)', () => {
 
   test('keyboard tab order is logical and labels are associated', async () => {
     const user = userEvent.setup();
-    render(<AddTransactionForm onSubmit={jest.fn()} />);
+    render(<AddTransactionForm onSubmit={jest.fn()} useApi={false} />);
 
     await user.tab();
     expect(screen.getByLabelText(/amount/i)).toHaveFocus();
@@ -54,7 +54,7 @@ describe('AddTransactionForm (UI skeleton)', () => {
   test('does not invoke onSubmit when required fields are missing', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     const form = screen.getByTestId('add-transaction-form');
     // Press Enter to attempt submit (button should be disabled anyway)
@@ -65,7 +65,7 @@ describe('AddTransactionForm (UI skeleton)', () => {
 
   test('validates and submits when all required fields are filled', async () => {
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill in fields
     await userEvent.type(screen.getByLabelText(/amount/i), '100');
@@ -79,7 +79,7 @@ describe('AddTransactionForm (UI skeleton)', () => {
 
   test('calls onSubmit when form is valid', async () => {
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill in fields
     await userEvent.type(screen.getByLabelText(/amount/i), '100');
@@ -101,7 +101,7 @@ describe('AddTransactionForm (UI skeleton)', () => {
 
   test('does not invoke onSubmit when required fields are missing', async () => {
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     const submitButton = screen.getByRole('button', { name: /add transaction/i });
     await userEvent.click(submitButton);

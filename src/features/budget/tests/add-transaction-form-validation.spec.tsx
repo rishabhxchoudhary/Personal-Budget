@@ -7,7 +7,7 @@ describe('AddTransactionForm validation', () => {
   test('displays error message for empty amount field', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill all fields except amount
     await user.type(screen.getByLabelText(/date/i), '2025-08-01');
@@ -25,7 +25,7 @@ describe('AddTransactionForm validation', () => {
   test('displays error message for negative amount', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill all fields with negative amount
     await user.type(screen.getByLabelText(/amount/i), '-50');
@@ -44,7 +44,7 @@ describe('AddTransactionForm validation', () => {
   test('displays error message for zero amount', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill all fields with zero amount
     await user.type(screen.getByLabelText(/amount/i), '0');
@@ -63,7 +63,7 @@ describe('AddTransactionForm validation', () => {
   test('displays error message for invalid amount format', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill all fields with invalid amount
     await user.type(screen.getByLabelText(/amount/i), 'abc');
@@ -83,7 +83,7 @@ describe('AddTransactionForm validation', () => {
   test('displays error message for empty date field', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill all fields except date
     await user.type(screen.getByLabelText(/amount/i), '100');
@@ -101,7 +101,7 @@ describe('AddTransactionForm validation', () => {
   test('displays error message for invalid date format', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill all fields with invalid date
     await user.type(screen.getByLabelText(/amount/i), '100');
@@ -121,7 +121,7 @@ describe('AddTransactionForm validation', () => {
   test('displays error message for empty category', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill all fields except category
     await user.type(screen.getByLabelText(/amount/i), '100');
@@ -138,7 +138,7 @@ describe('AddTransactionForm validation', () => {
   test('displays error message when type is not selected', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill all fields except type
     await user.type(screen.getByLabelText(/amount/i), '100');
@@ -155,7 +155,7 @@ describe('AddTransactionForm validation', () => {
   test('displays multiple error messages when multiple fields are invalid', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Leave all required fields empty
     const submitButton = screen.getByRole('button', { name: /add transaction/i });
@@ -171,7 +171,7 @@ describe('AddTransactionForm validation', () => {
   test('error messages are accessible with proper ARIA attributes', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     const submitButton = screen.getByRole('button', { name: /add transaction/i });
     await user.click(submitButton);
@@ -196,7 +196,7 @@ describe('AddTransactionForm validation', () => {
   test('error messages disappear when fields are corrected', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Submit with empty fields to trigger errors
     const submitButton = screen.getByRole('button', { name: /add transaction/i });
@@ -237,7 +237,7 @@ describe('AddTransactionForm validation', () => {
   test('note field is optional and does not trigger validation error', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill all required fields but leave note empty
     await user.type(screen.getByLabelText(/amount/i), '100');
@@ -263,7 +263,7 @@ describe('AddTransactionForm validation', () => {
   test('accepts decimal amounts', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    render(<AddTransactionForm onSubmit={onSubmit} />);
+    render(<AddTransactionForm onSubmit={onSubmit} useApi={false} />);
 
     // Fill all fields with decimal amount
     await user.type(screen.getByLabelText(/amount/i), '99.99');

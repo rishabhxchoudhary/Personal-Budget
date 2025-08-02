@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { transactionFormSchema, TransactionFormData } from '../utils/validation';
+import { useTransactions } from '../hooks/useTransactions';
 
-export type AddTransactionFormProps = { onSubmit: (data: unknown) => void };
+export type AddTransactionFormProps = {
+  onSubmit: (data: unknown) => void;
+  useApi?: boolean;
+};
 
-const todayString = (): string => new Date().toISOString().slice(0, 10);
-
-export function AddTransactionForm({ onSubmit }: AddTransactionFormProps) {
+export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFormProps) {
   const [selectedType, setSelectedType] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [date, setDate] = useState<string>('');
   const [category, setCategory] = useState<string>('');
   const [note, setNote] = useState<string>('');
   const [errors, setErrors] = useState<Partial<Record<keyof TransactionFormData, string>>>({});
+  const [successMessage, setSuccessMessage] = useState<string>('');
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const { createTransaction, isLoading, error: apiError, clearError } = useTransactions();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = {
@@ -27,7 +32,28 @@ export function AddTransactionForm({ onSubmit }: AddTransactionFormProps) {
 
     if (result.success) {
       setErrors({});
-      onSubmit(result.data);
+      if (useApi && createTransaction) {
+        try {
+          const transaction = await createTransaction(result.data);
+          onSubmit(transaction);
+
+          // Reset form on success
+          setAmount('');
+          setDate('');
+          setCategory('');
+          setSelectedType('');
+          setNote('');
+
+          // Show success message
+          setSuccessMessage('Transaction added successfully');
+          setTimeout(() => setSuccessMessage(''), 3000);
+        } catch {
+          // Error is already handled by the hook
+        }
+      } else {
+        // Non-API mode: just pass the validated data
+        onSubmit(result.data);
+      }
     } else {
       const fieldErrors: Partial<Record<keyof TransactionFormData, string>> = {};
       if (result.error) {
@@ -44,8 +70,23 @@ export function AddTransactionForm({ onSubmit }: AddTransactionFormProps) {
 
   const handleTypeChange = (value: string) => setSelectedType(value);
 
+  // Clear API error when user starts typing
+  useEffect(() => {
+    if (useApi && apiError) {
+      clearError();
+    }
+  }, [amount, date, category, selectedType, note, apiError, clearError, useApi]);
+
   return (
     <form data-testid="add-transaction-form" onSubmit={handleSubmit} noValidate>
+      {useApi && apiError && (
+        <div id="api-error" role="alert" style={{ color: 'red', marginBottom: '1rem' }}>
+          {apiError}
+        </div>
+      )}
+      {useApi && successMessage && (
+        <div style={{ color: 'green', marginBottom: '1rem' }}>{successMessage}</div>
+      )}
       <label htmlFor="amount">Amount</label>
       <input
         id="amount"
@@ -150,7 +191,9 @@ export function AddTransactionForm({ onSubmit }: AddTransactionFormProps) {
         </span>
       )}
 
-      <button type="submit">Add Transaction</button>
+      <button type="submit" disabled={useApi && isLoading}>
+        {useApi && isLoading ? 'Adding...' : 'Add Transaction'}
+      </button>
     </form>
   );
 }
