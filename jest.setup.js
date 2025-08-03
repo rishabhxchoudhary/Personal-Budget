@@ -38,6 +38,9 @@ const suppressedErrorPatterns = [
   /Server error/,
   /Failed to fetch/,
   /Auth error/,
+  // Radix UI errors in jsdom environment
+  /hasPointerCapture is not a function/,
+  /scrollIntoView is not a function/,
 ];
 
 console.error = (...args) => {
@@ -68,3 +71,23 @@ console.warn = (...args) => {
 // Original methods are stored but not restored to maintain consistency
 // To disable suppression and see all console output, run tests with:
 // SUPPRESS_TEST_CONSOLE=false pnpm test
+
+// Mock pointer capture methods for Radix UI components
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = function () {
+    return false;
+  };
+}
+
+if (!Element.prototype.setPointerCapture) {
+  Element.prototype.setPointerCapture = function () {};
+}
+
+if (!Element.prototype.releasePointerCapture) {
+  Element.prototype.releasePointerCapture = function () {};
+}
+
+// Mock scrollIntoView for Radix UI components
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = function () {};
+}

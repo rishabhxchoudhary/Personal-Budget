@@ -83,3 +83,28 @@ export function addMoney(a: number, b: number): number {
 export function subtractMoney(a: number, b: number): number {
   return a - b;
 }
+
+// Alias for formatMoney with default locale
+export function formatCurrency(minorUnits: number, currency: string): string {
+  return formatMoney(minorUnits, currency);
+}
+
+// Parse currency input string to number (major units)
+export function parseCurrencyInput(input: string): number {
+  if (!input || input.trim() === '') {
+    return 0;
+  }
+
+  // Remove currency symbols, spaces, and thousands separators
+  const cleaned = input.replace(/[^0-9.-]/g, '');
+
+  // Parse to float
+  const parsed = parseFloat(cleaned);
+
+  // Return 0 for invalid numbers
+  if (isNaN(parsed) || !isFinite(parsed)) {
+    return 0;
+  }
+
+  return parsed;
+}

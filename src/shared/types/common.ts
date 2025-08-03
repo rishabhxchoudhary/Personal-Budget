@@ -164,19 +164,26 @@ export interface DebtShareInput {
 export interface DebtPayment {
   paymentId: string;
   debtShareId: string;
+  payerId: string; // who paid (usually current user for "I Owe")
+  payeeId: string; // who received payment (the creditor)
   amountMinor: number;
   paymentDate: Date;
+  note?: string;
   transactionId?: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface DebtSummary {
   personId: string;
   personName: string;
-  totalOwedMinor: number;
+  totalOwedMinor: number; // sum(shares) originally owed
+  totalPaidMinor: number; // sum(payments) applied
+  outstandingMinor: number; // totalOwedMinor - totalPaidMinor (>= 0)
   currency: string;
   debtCount: number;
   oldestDebtDate: Date;
+  debtShareIds: string[]; // related shares for drill-down/settlement
 }
 
 // Repository interfaces
@@ -247,6 +254,9 @@ export interface DebtShareRepository extends Repository<DebtShare> {
   findByCreditorId(creditorId: string): Promise<DebtShare[]>;
   findByDebtorId(debtorId: string): Promise<DebtShare[]>;
   findByTransactionId(transactionId: string): Promise<DebtShare[]>;
+  findUnpaidByCreditorId(creditorId: string): Promise<DebtShare[]>;
+  findUnpaidByDebtorId(debtorId: string): Promise<DebtShare[]>;
+  updateStatus(debtShareId: string, newStatus: DebtStatus): Promise<DebtShare>;
 }
 
 export interface ExternalPersonRepository extends Repository<ExternalPerson> {
