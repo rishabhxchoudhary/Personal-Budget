@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/features/auth/components/auth-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 import { getSession } from '@/auth';
+import { Shell } from '@/components/shell';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,7 +25,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider session={session}>{children}</AuthProvider>
+          <AuthProvider session={session}>
+            <Shell>{children}</Shell>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
