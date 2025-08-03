@@ -141,6 +141,7 @@ export interface CreateTransactionInput {
   description?: string;
   categoryId?: string;
   splits?: Omit<TransactionSplit, 'splitId'>[];
+  recurringTransactionId?: string;
 }
 
 export interface SplitInput {
