@@ -59,12 +59,14 @@ describe('UserMenu', () => {
 
     // Check for loading animation
     const loadingDiv = loadingElement.querySelector('div');
-    expect(loadingDiv).toHaveStyle({
-      width: '40px',
-      height: '40px',
-      borderRadius: '50%',
-      backgroundColor: '#e0e0e0',
-    });
+    expect(loadingDiv).toHaveClass(
+      'w-10',
+      'h-10',
+      'rounded-full',
+      'bg-slate-200',
+      'dark:bg-slate-700',
+      'animate-pulse',
+    );
   });
 
   test('returns null when unauthenticated', () => {

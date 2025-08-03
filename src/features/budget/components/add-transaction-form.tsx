@@ -87,7 +87,7 @@ export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFo
   }, [amount, date, category, selectedType, note, apiError, clearError, useApi]);
 
   return (
-    <Card className="border-border/50 shadow-sm">
+    <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
       <CardContent className="pt-6">
         <form
           data-testid="add-transaction-form"
@@ -99,7 +99,7 @@ export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFo
             <div
               id="api-error"
               role="alert"
-              className="relative w-full rounded-lg border p-4 border-destructive/50 bg-destructive/10 text-destructive dark:border-destructive"
+              className="relative w-full rounded-lg border p-4 border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/50 text-red-900 dark:text-red-100"
             >
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-4 w-4 mt-0.5" />
@@ -108,7 +108,7 @@ export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFo
             </div>
           )}
           {useApi && successMessage && (
-            <div className="relative w-full rounded-lg border p-4 border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100">
+            <div className="relative w-full rounded-lg border p-4 border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950/50 dark:text-green-100">
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5" />
                 <div className="text-sm">{successMessage}</div>
@@ -117,7 +117,10 @@ export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFo
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="amount" className="text-sm font-medium">
+            <Label
+              htmlFor="amount"
+              className="text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
               Amount
             </Label>
             <Input
@@ -130,18 +133,28 @@ export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFo
               aria-required="true"
               aria-invalid={!!errors.amount}
               aria-describedby={errors.amount ? 'amount-error' : undefined}
-              className={errors.amount ? 'border-destructive' : ''}
+              className={cn(
+                'dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100',
+                errors.amount ? 'border-destructive dark:border-red-500' : '',
+              )}
               placeholder="0.00"
             />
             {errors.amount && (
-              <span id="amount-error" role="alert" className="text-sm text-destructive">
+              <span
+                id="amount-error"
+                role="alert"
+                className="text-sm text-destructive dark:text-red-400"
+              >
                 {errors.amount}
               </span>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="date" className="text-sm font-medium">
+            <Label
+              htmlFor="date"
+              className="text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
               Date
             </Label>
             <Input
@@ -154,17 +167,27 @@ export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFo
               placeholder="YYYY-MM-DD"
               aria-invalid={!!errors.date}
               aria-describedby={errors.date ? 'date-error' : undefined}
-              className={errors.date ? 'border-destructive' : ''}
+              className={cn(
+                'dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100',
+                errors.date ? 'border-destructive dark:border-red-500' : '',
+              )}
             />
             {errors.date && (
-              <span id="date-error" role="alert" className="text-sm text-destructive">
+              <span
+                id="date-error"
+                role="alert"
+                className="text-sm text-destructive dark:text-red-400"
+              >
                 {errors.date}
               </span>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category" className="text-sm font-medium">
+            <Label
+              htmlFor="category"
+              className="text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
               Category
             </Label>
             <select
@@ -174,22 +197,26 @@ export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFo
               onChange={(e) => setCategory(e.target.value)}
               aria-required="true"
               className={cn(
-                'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-                errors.category && 'border-destructive',
+                'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100',
+                errors.category && 'border-destructive dark:border-red-500',
               )}
             >
               <option value="">Select</option>
               <option value="general">General</option>
             </select>
             {errors.category && (
-              <span id="category-error" role="alert" className="text-sm text-destructive">
+              <span
+                id="category-error"
+                role="alert"
+                className="text-sm text-destructive dark:text-red-400"
+              >
                 {errors.category}
               </span>
             )}
           </div>
 
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium">Type</legend>
+            <legend className="text-sm font-medium text-slate-700 dark:text-slate-300">Type</legend>
             <div className="space-y-2">
               {/* Note: Using separate names for radio buttons to ensure they are individually
                   focusable during tab navigation. This deviates from standard radio group
@@ -203,9 +230,12 @@ export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFo
                   value="income"
                   checked={selectedType === 'income'}
                   onChange={() => handleTypeChange('income')}
-                  className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary"
+                  className="h-4 w-4 border-gray-300 dark:border-slate-600 text-primary focus:ring-2 focus:ring-primary dark:bg-slate-800"
                 />
-                <Label htmlFor="type-income" className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor="type-income"
+                  className="text-sm font-normal cursor-pointer text-slate-700 dark:text-slate-300"
+                >
                   Income
                 </Label>
               </div>
@@ -217,22 +247,32 @@ export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFo
                   value="expense"
                   checked={selectedType === 'expense'}
                   onChange={() => handleTypeChange('expense')}
-                  className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary"
+                  className="h-4 w-4 border-gray-300 dark:border-slate-600 text-primary focus:ring-2 focus:ring-primary dark:bg-slate-800"
                 />
-                <Label htmlFor="type-expense" className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor="type-expense"
+                  className="text-sm font-normal cursor-pointer text-slate-700 dark:text-slate-300"
+                >
                   Expense
                 </Label>
               </div>
             </div>
             {errors.type && (
-              <span id="type-error" role="alert" className="text-sm text-destructive">
+              <span
+                id="type-error"
+                role="alert"
+                className="text-sm text-destructive dark:text-red-400"
+              >
                 {errors.type}
               </span>
             )}
           </fieldset>
 
           <div className="space-y-2">
-            <Label htmlFor="note" className="text-sm font-medium">
+            <Label
+              htmlFor="note"
+              className="text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
               Note
             </Label>
             <Textarea
@@ -243,11 +283,18 @@ export function AddTransactionForm({ onSubmit, useApi = true }: AddTransactionFo
               onChange={(e) => setNote(e.target.value)}
               aria-invalid={!!errors.note}
               aria-describedby={errors.note ? 'note-error' : undefined}
-              className={errors.note ? 'border-destructive' : ''}
+              className={cn(
+                'dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100',
+                errors.note ? 'border-destructive dark:border-red-500' : '',
+              )}
               placeholder="Optional note..."
             />
             {errors.note && (
-              <span id="note-error" role="alert" className="text-sm text-destructive">
+              <span
+                id="note-error"
+                role="alert"
+                className="text-sm text-destructive dark:text-red-400"
+              >
                 {errors.note}
               </span>
             )}

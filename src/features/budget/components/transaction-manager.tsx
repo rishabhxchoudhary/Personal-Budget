@@ -53,11 +53,11 @@ export function TransactionManager({ itemsPerPage = 10 }: TransactionManagerProp
     return (
       <div className="container max-w-7xl mx-auto p-6">
         <div className="space-y-6">
-          <Skeleton className="h-12 w-64" />
-          <p className="text-center text-muted-foreground">Loading...</p>
+          <Skeleton className="h-12 w-64 dark:bg-slate-800" />
+          <p className="text-center text-muted-foreground dark:text-slate-400">Loading...</p>
           <div className="grid gap-6 md:grid-cols-2">
-            <Skeleton className="h-[400px]" />
-            <Skeleton className="h-[400px]" />
+            <Skeleton className="h-[400px] dark:bg-slate-800" />
+            <Skeleton className="h-[400px] dark:bg-slate-800" />
           </div>
         </div>
       </div>
@@ -67,24 +67,26 @@ export function TransactionManager({ itemsPerPage = 10 }: TransactionManagerProp
   // Show sign-in prompt for unauthenticated users
   if (status === 'unauthenticated') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-        <Card className="w-full max-w-md shadow-2xl border-0">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white dark:bg-slate-900">
           <CardHeader className="text-center space-y-2 pb-8">
-            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <Wallet className="h-8 w-8 text-primary" />
+            <div className="mx-auto w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mb-4">
+              <Wallet className="h-8 w-8 text-primary dark:text-primary" />
             </div>
-            <CardTitle className="text-3xl font-bold tracking-tight">
+            <CardTitle className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
               Personal Budget Manager
             </CardTitle>
-            <CardDescription className="text-base">
+            <CardDescription className="text-base text-slate-600 dark:text-slate-400">
               Track your income and expenses with ease
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <h2 className="text-2xl font-semibold">Welcome!</h2>
-                <p className="text-muted-foreground">
+                <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+                  Welcome!
+                </h2>
+                <p className="text-muted-foreground dark:text-slate-400">
                   Please sign in to access your personal budget manager and start tracking your
                   transactions.
                 </p>
@@ -98,15 +100,17 @@ export function TransactionManager({ itemsPerPage = 10 }: TransactionManagerProp
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
       <div className="container max-w-7xl mx-auto p-6 space-y-8">
         {/* Header with user menu */}
-        <header className="flex justify-between items-center pb-6 border-b border-border/50">
+        <header className="flex justify-between items-center pb-6 border-b border-slate-200 dark:border-slate-800">
           <div className="space-y-1">
-            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent">
               Personal Budget Manager
             </h1>
-            <p className="text-muted-foreground">Manage your finances with confidence</p>
+            <p className="text-muted-foreground dark:text-slate-400">
+              Manage your finances with confidence
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -118,7 +122,7 @@ export function TransactionManager({ itemsPerPage = 10 }: TransactionManagerProp
           <div
             role="alert"
             aria-live="polite"
-            className="relative w-full rounded-lg border p-4 border-destructive/50 bg-destructive/10 text-destructive dark:border-destructive shadow-md"
+            className="relative w-full rounded-lg border p-4 border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/50 text-red-900 dark:text-red-100 shadow-md"
           >
             <div className="flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5" />
@@ -132,7 +136,9 @@ export function TransactionManager({ itemsPerPage = 10 }: TransactionManagerProp
           {showForm && (
             <section className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold tracking-tight">Add New Transaction</h2>
+                <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+                  Add New Transaction
+                </h2>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -149,7 +155,9 @@ export function TransactionManager({ itemsPerPage = 10 }: TransactionManagerProp
           {/* Transaction History Section */}
           <section className={cn('space-y-4', !showForm && 'lg:col-span-2')}>
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold tracking-tight">Transaction History</h2>
+              <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+                Transaction History
+              </h2>
               <Button
                 onClick={() => setShowForm(!showForm)}
                 type="button"
@@ -172,7 +180,7 @@ export function TransactionManager({ itemsPerPage = 10 }: TransactionManagerProp
             </div>
 
             {isLoading && transactions.length === 0 ? (
-              <Card className="border-border/50">
+              <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                 <CardContent className="flex items-center justify-center py-16">
                   <div
                     role="status"
@@ -180,8 +188,10 @@ export function TransactionManager({ itemsPerPage = 10 }: TransactionManagerProp
                     aria-busy="true"
                     className="text-center space-y-2"
                   >
-                    <Skeleton className="h-4 w-32 mx-auto" />
-                    <p className="text-sm text-muted-foreground">Loading transactions...</p>
+                    <Skeleton className="h-4 w-32 mx-auto dark:bg-slate-800" />
+                    <p className="text-sm text-muted-foreground dark:text-slate-400">
+                      Loading transactions...
+                    </p>
                   </div>
                 </CardContent>
               </Card>

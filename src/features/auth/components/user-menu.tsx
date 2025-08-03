@@ -38,15 +38,7 @@ export function UserMenu({ className }: UserMenuProps) {
   if (status === 'loading') {
     return (
       <div className={className} aria-label="Loading user information">
-        <div
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            backgroundColor: '#e0e0e0',
-            animation: 'pulse 1.5s infinite',
-          }}
-        />
+        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
       </div>
     );
   }
@@ -65,7 +57,7 @@ export function UserMenu({ className }: UserMenuProps) {
         aria-expanded={isOpen}
         aria-haspopup="true"
         id="user-menu-button"
-        className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors"
+        className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-100 transition-colors"
       >
         {user.image ? (
           <Image
@@ -78,7 +70,7 @@ export function UserMenu({ className }: UserMenuProps) {
             data-testid="user-avatar"
           />
         ) : (
-          <div className="flex items-center justify-center w-8 h-8 text-sm font-semibold text-white bg-indigo-600 rounded-full">
+          <div className="flex items-center justify-center w-8 h-8 text-sm font-semibold text-white bg-primary dark:bg-primary rounded-full">
             {user.name?.charAt(0).toUpperCase() || 'U'}
           </div>
         )}
@@ -123,12 +115,14 @@ export function UserMenu({ className }: UserMenuProps) {
             role="menu"
             aria-orientation="vertical"
             aria-labelledby="user-menu-button"
-            className="absolute right-0 z-50 w-64 mt-2 origin-top-right bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700"
+            className="absolute right-0 z-50 w-64 mt-2 origin-top-right bg-white border border-slate-200 rounded-lg shadow-lg dark:bg-slate-900 dark:border-slate-700"
           >
             {/* User info section */}
-            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{user.name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{user.email}</p>
+            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                {user.name}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{user.email}</p>
             </div>
 
             {/* Menu items */}
@@ -137,7 +131,7 @@ export function UserMenu({ className }: UserMenuProps) {
                 role="menuitem"
                 onClick={handleSignOut}
                 disabled={isSigningOut}
-                className="flex items-center w-full gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center w-full gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                 aria-busy={isSigningOut}
               >
                 <svg
@@ -161,18 +155,6 @@ export function UserMenu({ className }: UserMenuProps) {
           </div>
         </>
       )}
-
-      <style jsx>{`
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.5;
-          }
-        }
-      `}</style>
     </div>
   );
 }

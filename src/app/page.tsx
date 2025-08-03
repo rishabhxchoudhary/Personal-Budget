@@ -5,7 +5,7 @@ import { TransactionManager } from '@/features/budget/components/transaction-man
 
 export default function HomePage() {
   return (
-    <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
       <TransactionManager itemsPerPage={10} />
     </main>
   );

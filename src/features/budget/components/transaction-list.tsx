@@ -54,16 +54,16 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
               setFilterType(e.target.value as 'all' | 'income' | 'expense');
               setCurrentPage(1); // Reset to first page when filter changes
             }}
-            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           >
             <option value="all">All</option>
             <option value="income">Income</option>
             <option value="expense">Expense</option>
           </select>
         </div>
-        <Card>
+        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
           <CardContent className="flex items-center justify-center py-16">
-            <p className="text-muted-foreground">No transactions found</p>
+            <p className="text-muted-foreground dark:text-slate-400">No transactions found</p>
           </CardContent>
         </Card>
       </div>
@@ -103,7 +103,7 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
             setFilterType(e.target.value as 'all' | 'income' | 'expense');
             setCurrentPage(1); // Reset to first page when filter changes
           }}
-          className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
         >
           <option value="all">All</option>
           <option value="income">Income</option>
@@ -111,10 +111,10 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
         </select>
       </div>
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50">
+            <TableRow className="bg-slate-50 dark:bg-slate-800/50">
               <TableHead className="w-[120px]">Date</TableHead>
               <TableHead className="w-[100px]">Type</TableHead>
               <TableHead className="w-[120px]">Category</TableHead>
@@ -127,7 +127,7 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
               <TableRow
                 key={transaction.id}
                 data-transaction-type={transaction.type}
-                className="hover:bg-muted/50 transition-colors"
+                className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
               >
                 <TableCell className="font-medium">{transaction.date}</TableCell>
                 <TableCell>
@@ -136,8 +136,8 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
                     className={cn(
                       'font-medium',
                       transaction.type === 'income'
-                        ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                        : 'bg-red-100 text-red-800 hover:bg-red-100',
+                        ? 'bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/30'
+                        : 'bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/30',
                     )}
                   >
                     <span className="flex items-center gap-1">
@@ -151,19 +151,26 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="font-normal">
+                  <Badge
+                    variant="outline"
+                    className="font-normal dark:border-slate-700 dark:text-slate-300"
+                  >
                     {transaction.category}
                   </Badge>
                 </TableCell>
                 <TableCell
                   className={cn(
                     'text-right font-semibold',
-                    transaction.type === 'income' ? 'text-green-600' : 'text-red-600',
+                    transaction.type === 'income'
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400',
                   )}
                 >
                   {formatAmount(transaction.amount, transaction.type)}
                 </TableCell>
-                <TableCell className="text-muted-foreground">{transaction.note}</TableCell>
+                <TableCell className="text-muted-foreground dark:text-slate-400">
+                  {transaction.note}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -171,7 +178,7 @@ export function TransactionList({ transactions, itemsPerPage }: TransactionListP
       </Card>
 
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm text-muted-foreground dark:text-slate-400">
           Showing {startIndex + 1}-{endIndex} of {filteredTransactions.length}
         </span>
         <div className="flex gap-2">
