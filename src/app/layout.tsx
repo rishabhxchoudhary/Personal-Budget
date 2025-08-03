@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/features/auth/components/auth-provider';
+import { ThemeProvider } from '@/components/theme-provider';
 import { getSession } from '@/auth';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -15,9 +16,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = await getSession();
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthProvider session={session}>{children}</AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider session={session}>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -7,9 +7,23 @@ import { http, HttpResponse } from 'msw';
 import { resetMockTransactions } from '@/mocks/handlers';
 import { useSession } from 'next-auth/react';
 import { createMockSession } from '@/features/auth/tests/auth-test-utils';
+import { useTheme } from 'next-themes';
 
 // Mock next-auth properly
 const mockUseSession = useSession as jest.MockedFunction<typeof useSession>;
+
+// Mock next-themes
+const mockUseTheme = useTheme as jest.MockedFunction<typeof useTheme>;
+jest.mock('next-themes', () => ({
+  useTheme: jest.fn(() => ({
+    theme: 'light',
+    setTheme: jest.fn(),
+    themes: ['light', 'dark'],
+    systemTheme: 'light',
+    resolvedTheme: 'light',
+    forcedTheme: undefined,
+  })),
+}));
 
 describe('TransactionManager', () => {
   beforeEach(() => {
@@ -82,6 +96,9 @@ describe('TransactionManager', () => {
 
       // Check for user menu
       expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument();
+
+      // Check for theme toggle
+      expect(screen.getByRole('button', { name: /switch to dark mode/i })).toBeInTheDocument();
 
       // Wait for transactions to load
       await waitFor(() => {
@@ -398,5 +415,44 @@ describe('TransactionManager', () => {
     const userMenuButton = screen.getByRole('button', { name: /user menu/i });
     expect(userMenuButton).toBeInTheDocument();
     expect(screen.getByText('Test User')).toBeInTheDocument();
+  });
+
+  test('theme toggle works properly', async () => {
+    const user = userEvent.setup();
+    const mockSetTheme = jest.fn();
+
+    // Mock authenticated session
+    mockUseSession.mockReturnValue({
+      data: createMockSession({
+        id: 'test-user-id',
+        email: 'test@example.com',
+        name: 'Test User',
+        image: null,
+      }),
+      status: 'authenticated',
+      update: jest.fn(),
+    });
+
+    // Mock useTheme to return light theme initially
+    mockUseTheme.mockReturnValue({
+      theme: 'light',
+      setTheme: mockSetTheme,
+      themes: ['light', 'dark'],
+      systemTheme: 'light',
+      resolvedTheme: 'light',
+      forcedTheme: undefined,
+    });
+
+    render(<TransactionManager />);
+
+    // Find the theme toggle button
+    const themeToggle = await screen.findByRole('button', { name: /switch to dark mode/i });
+    expect(themeToggle).toBeInTheDocument();
+
+    // Click the theme toggle
+    await user.click(themeToggle);
+
+    // Verify setTheme was called with 'dark'
+    expect(mockSetTheme).toHaveBeenCalledWith('dark');
   });
 });

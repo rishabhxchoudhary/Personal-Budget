@@ -7,6 +7,7 @@ import { TransactionList, Transaction } from './transaction-list';
 import { useTransactions } from '../hooks/useTransactions';
 import { UserMenu } from '@/features/auth/components/user-menu';
 import { LoginButton } from '@/features/auth/components/login-button';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -107,7 +108,10 @@ export function TransactionManager({ itemsPerPage = 10 }: TransactionManagerProp
             </h1>
             <p className="text-muted-foreground">Manage your finances with confidence</p>
           </div>
-          <UserMenu />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <UserMenu />
+          </div>
         </header>
 
         {error && (
