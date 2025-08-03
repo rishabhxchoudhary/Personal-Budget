@@ -84,6 +84,27 @@ export function isDateInMonth(date: Date, month: string): boolean {
   return dateTime >= range.start.getTime() && dateTime <= range.end.getTime();
 }
 
+export function isMonthInFuture(month: string): boolean {
+  if (!isValidMonth(month)) {
+    throw new Error('Invalid month string');
+  }
+
+  const { year, month: monthNum } = parseMonthString(month);
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
+
+  if (year > currentYear) {
+    return true;
+  }
+
+  if (year === currentYear && monthNum > currentMonth) {
+    return true;
+  }
+
+  return false;
+}
+
 export function formatDateForDisplay(
   date: Date,
   format: 'short' | 'medium' | 'long' | 'iso' = 'medium',
