@@ -79,6 +79,49 @@ if (!Element.prototype.hasPointerCapture) {
   };
 }
 
+// Mock next-auth to avoid ES module issues
+jest.mock('next-auth', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    auth: jest.fn(),
+    handlers: { GET: jest.fn(), POST: jest.fn() },
+    signIn: jest.fn(),
+    signOut: jest.fn(),
+  })),
+}));
+
+jest.mock('next-auth/providers/google', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    id: 'google',
+    name: 'Google',
+  })),
+}));
+
+// Mock NextResponse for API tests
+jest.mock('next/server', () => ({
+  NextRequest: class MockNextRequest {
+    constructor(url, options = {}) {
+      Object.assign(this, new Request(url, options));
+      this.nextUrl = new URL(url);
+      this.url = url;
+    }
+  },
+  NextResponse: {
+    json: jest.fn((data, init) => {
+      const response = new Response(JSON.stringify(data), {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          ...init?.headers,
+        },
+      });
+      return response;
+    }),
+    redirect: jest.fn(),
+  },
+}));
+
 if (!Element.prototype.setPointerCapture) {
   Element.prototype.setPointerCapture = function () {};
 }

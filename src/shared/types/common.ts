@@ -306,3 +306,73 @@ export class BusinessError extends Error {
     this.name = 'BusinessError';
   }
 }
+
+// Recurring Transaction types
+export interface RecurringTransactionSplit {
+  categoryId?: string;
+  amountMinor: number;
+  note?: string;
+}
+
+export interface RecurringTransactionTemplate {
+  accountId: string;
+  amountMinor: number;
+  type: 'income' | 'expense' | 'transfer';
+  counterparty?: string;
+  description?: string;
+  splits: RecurringTransactionSplit[];
+}
+
+export interface RecurringTransaction {
+  recurringId: string;
+  userId: string;
+  name: string;
+  template: RecurringTransactionTemplate;
+  schedule: string; // RRULE-like format
+  nextRunAt: Date;
+  lastRunAt?: Date;
+  isActive: boolean;
+  autoPost: boolean; // Whether to auto-post or require confirmation
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateRecurringTransactionInput {
+  name: string;
+  template: Omit<RecurringTransactionTemplate, 'splits'> & {
+    splits: Omit<RecurringTransactionSplit, 'splitId'>[];
+  };
+  schedule: string;
+  autoPost?: boolean;
+}
+
+export interface RecurringTransactionDue {
+  recurringTransaction: RecurringTransaction;
+  dueDate: Date;
+  suggestedTransaction: Omit<Transaction, 'transactionId' | 'createdAt' | 'updatedAt'>;
+}
+
+export interface RecurringTransactionRepository extends Repository<RecurringTransaction> {
+  findByUserId(userId: string): Promise<RecurringTransaction[]>;
+  findDueTransactions(beforeDate: Date): Promise<RecurringTransaction[]>;
+  findByAccountId(accountId: string): Promise<RecurringTransaction[]>;
+  updateNextRunAt(recurringId: string, nextRunAt: Date): Promise<RecurringTransaction>;
+}
+
+export interface RecurringTransactionService {
+  createRecurringTransaction(
+    input: CreateRecurringTransactionInput & { userId: string },
+  ): Promise<RecurringTransaction>;
+  getDueTransactions(userId: string): Promise<RecurringTransactionDue[]>;
+  postRecurringTransaction(
+    recurringId: string,
+    confirmationData?: {
+      date?: string;
+      description?: string;
+      counterparty?: string;
+      amountMinor?: number;
+    },
+  ): Promise<Transaction>;
+  skipRecurringTransaction(recurringId: string): Promise<RecurringTransaction>;
+  calculateNextRunDate(schedule: string, lastRun?: Date): Date;
+}

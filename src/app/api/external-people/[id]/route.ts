@@ -18,7 +18,9 @@ interface RouteContext {
 }
 
 // GET /api/external-people/[id] - Get specific external person
-export const GET = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const GET = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const personId = validateId(params.id, 'Person ID');
 
@@ -136,7 +138,9 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: Ro
 });
 
 // PUT /api/external-people/[id] - Update external person
-export const PUT = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const PUT = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const personId = validateId(params.id, 'Person ID');
 
@@ -170,7 +174,9 @@ export const PUT = withErrorHandling(async (request: NextRequest, { params }: Ro
 });
 
 // DELETE /api/external-people/[id] - Delete external person (soft delete by setting isActive = false)
-export const DELETE = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const DELETE = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const personId = validateId(params.id, 'Person ID');
 

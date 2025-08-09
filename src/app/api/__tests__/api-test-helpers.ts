@@ -5,9 +5,9 @@ import { CategoryRepository } from '@/features/categories/model/category-reposit
 import { UserRepository } from '@/features/users/model/user-repository';
 import { BudgetRepository } from '@/features/budgets/model/budget-repository';
 import { CategoryAllocationRepository } from '@/features/budgets/model/category-allocation-repository';
-import { DebtShareRepository } from '@/features/debts/model/debt-share-repository';
-import { DebtPaymentRepository } from '@/features/debts/model/debt-payment-repository';
-import { ExternalPersonRepository } from '@/features/debts/model/external-person-repository';
+import { DebtShareRepositoryImpl } from '@/features/debts/model/debt-share-repository';
+import { DebtPaymentRepositoryImpl } from '@/features/debts/model/debt-payment-repository';
+import { ExternalPersonRepositoryImpl } from '@/features/debts/model/external-person-repository';
 import { v4 as uuidv4 } from 'uuid';
 
 // Mock repositories
@@ -18,9 +18,9 @@ export class MockRepositories {
   users: UserRepository;
   budgets: BudgetRepository;
   categoryAllocations: CategoryAllocationRepository;
-  debtShares: DebtShareRepository;
-  debtPayments: DebtPaymentRepository;
-  externalPeople: ExternalPersonRepository;
+  debtShares: DebtShareRepositoryImpl;
+  debtPayments: DebtPaymentRepositoryImpl;
+  externalPeople: ExternalPersonRepositoryImpl;
 
   constructor() {
     this.transactions = new TransactionRepository();
@@ -29,26 +29,24 @@ export class MockRepositories {
     this.users = new UserRepository();
     this.budgets = new BudgetRepository();
     this.categoryAllocations = new CategoryAllocationRepository();
-    this.debtShares = new DebtShareRepository();
-    this.debtPayments = new DebtPaymentRepository();
-    this.externalPeople = new ExternalPersonRepository();
+    this.debtShares = new DebtShareRepositoryImpl();
+    this.debtPayments = new DebtPaymentRepositoryImpl();
+    this.externalPeople = new ExternalPersonRepositoryImpl();
   }
 
   async reset() {
     // Clear all data
-    await Promise.all(
-      [
-        this.transactions.clear?.(),
-        this.accounts.clear?.(),
-        this.categories.clear?.(),
-        this.users.clear?.(),
-        this.budgets.clear?.(),
-        this.categoryAllocations.clear?.(),
-        this.debtShares.clear?.(),
-        this.debtPayments.clear?.(),
-        this.externalPeople.clear?.(),
-      ].filter(Boolean),
-    );
+    await Promise.all([
+      this.transactions.clear(),
+      this.accounts.clear(),
+      this.categories.clear(),
+      this.users.clear(),
+      this.budgets.clear(),
+      this.categoryAllocations.clear(),
+      this.debtShares.clear(),
+      this.debtPayments.clear(),
+      this.externalPeople.clear(),
+    ]);
   }
 }
 
@@ -92,7 +90,9 @@ export function createTestRequest(
     requestInit.body = JSON.stringify(body);
   }
 
-  return new NextRequest(fullUrl.toString(), requestInit);
+  // Create a proper Request first, then wrap in NextRequest
+  const request = new Request(fullUrl.toString(), requestInit);
+  return new NextRequest(request);
 }
 
 // Test data factories
@@ -166,6 +166,9 @@ export class TestDataFactory {
       categoryId,
       allocationType: 'fixed',
       allocationValue: 100000, // $1000
+      allocatedMinor: 100000,
+      spentMinor: 0,
+      remainingMinor: 100000,
       rollover: false,
       ...overrides,
     });
@@ -177,7 +180,7 @@ export class TestDataFactory {
     categoryId: string,
     overrides?: Partial<Parameters<TransactionRepository['create']>[0]>,
   ) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
     return this.repos.transactions.create({
       userId,
       accountId,
@@ -199,7 +202,7 @@ export class TestDataFactory {
 
   async createTestExternalPerson(
     userId: string,
-    overrides?: Partial<Parameters<ExternalPersonRepository['create']>[0]>,
+    overrides?: Partial<Parameters<ExternalPersonRepositoryImpl['create']>[0]>,
   ) {
     return this.repos.externalPeople.create({
       userId,
@@ -214,11 +217,13 @@ export class TestDataFactory {
   async createTestDebtShare(
     transactionId: string,
     debtorId: string,
-    overrides?: Partial<Parameters<DebtShareRepository['create']>[0]>,
+    creditorId: string,
+    overrides?: Partial<Parameters<DebtShareRepositoryImpl['create']>[0]>,
   ) {
     return this.repos.debtShares.create({
       transactionId,
       debtorId,
+      creditorId,
       amountMinor: 2500, // $25
       status: 'pending',
       ...overrides,
@@ -227,11 +232,14 @@ export class TestDataFactory {
 
   async createTestDebtPayment(
     debtShareId: string,
-    overrides?: Partial<Parameters<DebtPaymentRepository['create']>[0]>,
+    payerId: string,
+    overrides?: Partial<Parameters<DebtPaymentRepositoryImpl['create']>[0]>,
   ) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
     return this.repos.debtPayments.create({
       debtShareId,
+      payerId,
+      payeeId: payerId, // Default to same as payer for test
       amountMinor: 2500, // $25
       paymentDate: today,
       note: 'Test payment',

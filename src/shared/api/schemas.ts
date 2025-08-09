@@ -193,3 +193,52 @@ export const debtQuerySchema = paginationSchema.extend({
   status: debtStatusSchema.optional(),
   type: z.enum(['owed-to-me', 'i-owe']).optional(),
 });
+
+// Recurring Transaction schemas
+export const recurringTransactionSplitSchema = z.object({
+  categoryId: uuidSchema.optional(),
+  amountMinor: positiveIntegerSchema,
+  note: z.string().max(255, 'Note must be 255 characters or less').optional(),
+});
+
+export const recurringTransactionTemplateSchema = z.object({
+  accountId: uuidSchema,
+  amountMinor: positiveIntegerSchema,
+  type: transactionTypeSchema,
+  counterparty: z.string().max(100, 'Counterparty must be 100 characters or less').optional(),
+  description: z.string().max(255, 'Description must be 255 characters or less').optional(),
+  splits: z.array(recurringTransactionSplitSchema).min(1, 'At least one split is required'),
+});
+
+export const scheduleSchema = z
+  .string()
+  .min(1, 'Schedule is required')
+  .regex(/^FREQ=(DAILY|WEEKLY|MONTHLY|YEARLY)/, 'Schedule must start with valid FREQ');
+
+export const createRecurringTransactionSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less'),
+  template: recurringTransactionTemplateSchema,
+  schedule: scheduleSchema,
+  autoPost: z.boolean().optional().default(false),
+});
+
+export const updateRecurringTransactionSchema = createRecurringTransactionSchema.partial();
+
+export const postRecurringTransactionSchema = z.object({
+  date: dateSchema.optional(),
+  description: z.string().max(255, 'Description must be 255 characters or less').optional(),
+  counterparty: z.string().max(100, 'Counterparty must be 100 characters or less').optional(),
+  amountMinor: positiveIntegerSchema.optional(),
+});
+
+export const recurringTransactionQuerySchema = paginationSchema.extend({
+  isActive: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  accountId: uuidSchema.optional(),
+  daysAhead: z
+    .string()
+    .transform((val) => Math.max(1, Math.min(365, parseInt(val) || 30)))
+    .optional(),
+});

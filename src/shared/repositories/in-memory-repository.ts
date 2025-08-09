@@ -89,6 +89,11 @@ export abstract class InMemoryRepository<
     }
   }
 
+  async clear(): Promise<void> {
+    this.store.clear();
+    this.insertionOrder = [];
+  }
+
   private deepCopy<U>(obj: U): U {
     if (obj === null || typeof obj !== 'object') {
       return obj;

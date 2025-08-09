@@ -7,7 +7,7 @@ import {
   successResponse,
   noContentResponse,
   validateId,
-  ApiError
+  ApiError,
 } from '@/shared/api/utils';
 import { updateBudgetSchema } from '@/shared/api/schemas';
 import { repositories } from '@/shared/repositories/container';
@@ -17,7 +17,9 @@ interface RouteContext {
 }
 
 // GET /api/budgets/[id] - Get specific budget with allocations
-export const GET = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const GET = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const budgetId = validateId(params.id, 'Budget ID');
 
@@ -36,12 +38,14 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: Ro
   // Return budget with allocations
   return successResponse({
     ...budget,
-    allocations
+    allocations,
   });
 });
 
 // PUT /api/budgets/[id] - Update budget
-export const PUT = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const PUT = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const budgetId = validateId(params.id, 'Budget ID');
 
@@ -60,14 +64,16 @@ export const PUT = withErrorHandling(async (request: NextRequest, { params }: Ro
   // Update the budget
   const updatedBudget = await repositories.budgets.update(budgetId, {
     ...data,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   });
 
   return successResponse(updatedBudget);
 });
 
 // DELETE /api/budgets/[id] - Delete budget
-export const DELETE = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const DELETE = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const budgetId = validateId(params.id, 'Budget ID');
 

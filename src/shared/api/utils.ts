@@ -156,10 +156,10 @@ export function noContentResponse(): NextResponse {
 }
 
 // Route handler wrapper that catches errors
-export function withErrorHandling(
-  handler: (request: NextRequest, context?: unknown) => Promise<NextResponse>,
+export function withErrorHandling<T = unknown>(
+  handler: (request: NextRequest, context?: T) => Promise<NextResponse>,
 ) {
-  return async (request: NextRequest, context?: unknown): Promise<NextResponse> => {
+  return async (request: NextRequest, context?: T): Promise<NextResponse> => {
     try {
       return await handler(request, context);
     } catch (error) {

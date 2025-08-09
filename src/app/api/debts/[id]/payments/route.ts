@@ -19,7 +19,9 @@ interface RouteContext {
 }
 
 // GET /api/debts/[id]/payments - List payments for a debt share
-export const GET = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const GET = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const debtShareId = validateId(params.id, 'Debt Share ID');
   const { page, limit } = getPaginationParams(request);
@@ -115,7 +117,9 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: Ro
 });
 
 // POST /api/debts/[id]/payments - Record a payment for a debt share
-export const POST = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const POST = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const debtShareId = validateId(params.id, 'Debt Share ID');
 

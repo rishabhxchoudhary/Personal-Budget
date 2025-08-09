@@ -8,6 +8,7 @@ import { DebtPaymentRepositoryImpl } from '@/features/debts/model/debt-payment-r
 import { ExternalPersonRepositoryImpl } from '@/features/debts/model/external-person-repository';
 import { TransactionRepository } from '@/features/transactions/model/transaction-repository';
 import { UserRepository } from '@/features/users/model/user-repository';
+import { RecurringTransactionRepository } from '@/features/recurring-transactions/model/recurring-transaction-repository';
 
 // Repository container class
 export class RepositoryContainer {
@@ -22,6 +23,7 @@ export class RepositoryContainer {
   public readonly externalPeople: ExternalPersonRepositoryImpl;
   public readonly transactions: TransactionRepository;
   public readonly users: UserRepository;
+  public readonly recurringTransactions: RecurringTransactionRepository;
 
   private constructor() {
     // Initialize all repositories
@@ -34,6 +36,7 @@ export class RepositoryContainer {
     this.externalPeople = new ExternalPersonRepositoryImpl();
     this.transactions = new TransactionRepository();
     this.users = new UserRepository();
+    this.recurringTransactions = new RecurringTransactionRepository();
   }
 
   public static getInstance(): RepositoryContainer {
@@ -44,30 +47,22 @@ export class RepositoryContainer {
   }
 
   // Method to reset all repositories (useful for testing)
-  public reset(): void {
+  public async reset(): Promise<void> {
     // Reset all in-memory repositories
     // Reset all repository data structures
     // Note: This accesses private properties for testing purposes
     // In a real implementation, repositories would expose reset methods
 
-    // @ts-expect-error - Accessing private property for testing
-    this.accounts['entities']?.clear();
-    // @ts-expect-error - Accessing private property for testing
-    this.budgets['entities']?.clear();
-    // @ts-expect-error - Accessing private property for testing
-    this.categoryAllocations['entities']?.clear();
-    // @ts-expect-error - Accessing private property for testing
-    this.categories['entities']?.clear();
-    // @ts-expect-error - Accessing private property for testing
-    this.debtShares['store']?.clear();
-    // @ts-expect-error - Accessing private property for testing
-    this.debtPayments['store']?.clear();
-    // @ts-expect-error - Accessing private property for testing
-    this.externalPeople['entities']?.clear();
-    // @ts-expect-error - Accessing private property for testing
-    this.transactions['entities']?.clear();
-    // @ts-expect-error - Accessing private property for testing
-    this.users['entities']?.clear();
+    await this.accounts.clear();
+    await this.budgets.clear();
+    await this.categoryAllocations.clear();
+    await this.categories.clear();
+    await this.debtShares.clear();
+    await this.debtPayments.clear();
+    await this.externalPeople.clear();
+    await this.transactions.clear();
+    await this.users.clear();
+    await this.recurringTransactions.clear();
 
     // Reset any indexes
     if ('userIdIndex' in this.accounts) {

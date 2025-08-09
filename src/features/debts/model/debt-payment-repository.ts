@@ -112,6 +112,11 @@ export class DebtPaymentRepositoryImpl implements DebtPaymentRepository {
     throw new Error('Debt payments are immutable and cannot be deleted');
   }
 
+  async clear(): Promise<void> {
+    this.store.clear();
+    this.insertionOrder = [];
+  }
+
   async findByDebtShareIds(debtShareIds: string[]): Promise<DebtPayment[]> {
     if (!debtShareIds.length) return [];
     const all = await this.findAll();

@@ -4,20 +4,24 @@ import {
   requireAuth,
   requireOwnership,
   validateRequest,
+  successResponse,
   noContentResponse,
   validateId,
   ApiError,
 } from '@/shared/api/utils';
 import { updateTransactionSchema } from '@/shared/api/schemas';
 import { repositories } from '@/shared/repositories/container';
-import { Transaction } from '@/shared/types/common';
+import { Transaction, TransactionSplit } from '@/shared/types/common';
+import { v4 as uuidv4 } from 'uuid';
 
 interface RouteContext {
   params: { id: string };
 }
 
 // GET /api/transactions/[id] - Get specific transaction
-export const GET = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const GET = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const transactionId = validateId(params.id, 'Transaction ID');
 
@@ -67,7 +71,9 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: Ro
 });
 
 // PUT /api/transactions/[id] - Update transaction
-export const PUT = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const PUT = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const transactionId = validateId(params.id, 'Transaction ID');
 
@@ -111,15 +117,26 @@ export const PUT = withErrorHandling(async (request: NextRequest, { params }: Ro
   }
 
   // Update the transaction
-  const updateData: Partial<Transaction> & { updatedAt: Date } = {
-    ...data,
-    updatedAt: new Date(),
-  };
+  // Create updateData with proper type conversion
+  const { date: dateString, splits: apiSplits, ...restData } = data;
 
-  // Convert date string to Date object if provided
-  if (data.date) {
-    updateData.date = new Date(data.date);
+  // Transform splits if provided (add splitIds)
+  let transformedSplits: TransactionSplit[] | undefined;
+  if (apiSplits) {
+    transformedSplits = apiSplits.map((split) => ({
+      ...split,
+      splitId: uuidv4(),
+    }));
   }
+
+  const updateData: Partial<Transaction> & { updatedAt: Date } = {
+    ...restData,
+    updatedAt: new Date(),
+    // Convert date string to Date object if provided
+    ...(dateString && { date: new Date(dateString) }),
+    // Add transformed splits if provided
+    ...(transformedSplits && { splits: transformedSplits }),
+  };
 
   const updatedTransaction = await repositories.transactions.update(transactionId, updateData);
 
@@ -127,7 +144,9 @@ export const PUT = withErrorHandling(async (request: NextRequest, { params }: Ro
 });
 
 // DELETE /api/transactions/[id] - Delete transaction
-export const DELETE = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const DELETE = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const transactionId = validateId(params.id, 'Transaction ID');
 

@@ -7,7 +7,7 @@ import {
   successResponse,
   noContentResponse,
   validateId,
-  ApiError
+  ApiError,
 } from '@/shared/api/utils';
 import { updateCategoryAllocationSchema } from '@/shared/api/schemas';
 import { repositories } from '@/shared/repositories/container';
@@ -17,7 +17,9 @@ interface RouteContext {
 }
 
 // GET /api/budgets/[budgetId]/allocations/[allocationId] - Get specific allocation
-export const GET = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const GET = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const budgetId = validateId(params.budgetId, 'Budget ID');
   const allocationId = validateId(params.allocationId, 'Allocation ID');
@@ -47,18 +49,22 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: Ro
 
   return successResponse({
     ...allocation,
-    category: category ? {
-      categoryId: category.categoryId,
-      name: category.name,
-      type: category.type,
-      icon: category.icon,
-      color: category.color
-    } : null
+    category: category
+      ? {
+          categoryId: category.categoryId,
+          name: category.name,
+          type: category.type,
+          icon: category.icon,
+          color: category.color,
+        }
+      : null,
   });
 });
 
 // PUT /api/budgets/[budgetId]/allocations/[allocationId] - Update allocation
-export const PUT = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const PUT = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const budgetId = validateId(params.budgetId, 'Budget ID');
   const allocationId = validateId(params.allocationId, 'Allocation ID');
@@ -91,7 +97,10 @@ export const PUT = withErrorHandling(async (request: NextRequest, { params }: Ro
 
   if (data.allocationType || data.allocationValue !== undefined) {
     const allocationType = data.allocationType || existingAllocation.allocationType;
-    const allocationValue = data.allocationValue !== undefined ? data.allocationValue : existingAllocation.allocationValue;
+    const allocationValue =
+      data.allocationValue !== undefined
+        ? data.allocationValue
+        : existingAllocation.allocationValue;
 
     if (allocationType === 'fixed') {
       allocatedMinor = allocationValue;
@@ -111,7 +120,7 @@ export const PUT = withErrorHandling(async (request: NextRequest, { params }: Ro
     ...data,
     allocatedMinor,
     remainingMinor,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   });
 
   // Update budget's total allocated amount
@@ -120,14 +129,16 @@ export const PUT = withErrorHandling(async (request: NextRequest, { params }: Ro
 
   await repositories.budgets.update(budgetId, {
     totalAllocatedMinor: totalAllocated,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   });
 
   return successResponse(updatedAllocation);
 });
 
 // DELETE /api/budgets/[budgetId]/allocations/[allocationId] - Delete allocation
-export const DELETE = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const DELETE = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const budgetId = validateId(params.budgetId, 'Budget ID');
   const allocationId = validateId(params.allocationId, 'Allocation ID');
@@ -154,7 +165,10 @@ export const DELETE = withErrorHandling(async (request: NextRequest, { params }:
 
   // Check if allocation has been used (has spent amount)
   if (existingAllocation.spentMinor > 0) {
-    throw new ApiError('Cannot delete allocation that has spent amount. Set allocation to 0 instead.', 400);
+    throw new ApiError(
+      'Cannot delete allocation that has spent amount. Set allocation to 0 instead.',
+      400,
+    );
   }
 
   // Delete the allocation
@@ -166,7 +180,7 @@ export const DELETE = withErrorHandling(async (request: NextRequest, { params }:
 
   await repositories.budgets.update(budgetId, {
     totalAllocatedMinor: totalAllocated,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   });
 
   return noContentResponse();

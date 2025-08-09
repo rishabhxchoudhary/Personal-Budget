@@ -33,19 +33,17 @@ export class MockRepositories {
 
   async reset() {
     // Clear all data
-    await Promise.all(
-      [
-        this.transactions.clear?.(),
-        this.accounts.clear?.(),
-        this.categories.clear?.(),
-        this.users.clear?.(),
-        this.budgets.clear?.(),
-        this.categoryAllocations.clear?.(),
-        this.debtShares.clear?.(),
-        this.debtPayments.clear?.(),
-        this.externalPeople.clear?.(),
-      ].filter(Boolean),
-    );
+    await Promise.all([
+      this.transactions.clear(),
+      this.accounts.clear(),
+      this.categories.clear(),
+      this.users.clear(),
+      this.budgets.clear(),
+      this.categoryAllocations.clear(),
+      this.debtShares.clear(),
+      this.debtPayments.clear(),
+      this.externalPeople.clear(),
+    ]);
   }
 }
 
@@ -123,6 +121,9 @@ export class TestDataFactory {
       categoryId,
       allocationType: 'fixed',
       allocationValue: 100000, // $1000
+      allocatedMinor: 100000,
+      spentMinor: 0,
+      remainingMinor: 100000,
       rollover: false,
       ...overrides,
     });
@@ -134,7 +135,7 @@ export class TestDataFactory {
     categoryId: string,
     overrides?: Partial<Parameters<TransactionRepository['create']>[0]>,
   ) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
     return this.repos.transactions.create({
       userId,
       accountId,
@@ -171,12 +172,14 @@ export class TestDataFactory {
   async createTestDebtShare(
     transactionId: string,
     debtorId: string,
+    creditorId: string,
     overrides?: Partial<Parameters<DebtShareRepositoryImpl['create']>[0]>,
   ) {
     return this.repos.debtShares.create({
+      amountMinor: 2500, // $25
       transactionId,
       debtorId,
-      amountMinor: 2500, // $25
+      creditorId,
       status: 'pending',
       ...overrides,
     });
@@ -184,11 +187,14 @@ export class TestDataFactory {
 
   async createTestDebtPayment(
     debtShareId: string,
+    payerId: string,
     overrides?: Partial<Parameters<DebtPaymentRepositoryImpl['create']>[0]>,
   ) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
     return this.repos.debtPayments.create({
       debtShareId,
+      payerId,
+      payeeId: payerId, // Default to same as payer for test
       amountMinor: 2500, // $25
       paymentDate: today,
       note: 'Test payment',

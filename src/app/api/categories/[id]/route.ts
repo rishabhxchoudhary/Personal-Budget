@@ -7,7 +7,7 @@ import {
   successResponse,
   noContentResponse,
   validateId,
-  ApiError
+  ApiError,
 } from '@/shared/api/utils';
 import { updateCategorySchema } from '@/shared/api/schemas';
 import { repositories } from '@/shared/repositories/container';
@@ -17,7 +17,9 @@ interface RouteContext {
 }
 
 // GET /api/categories/[id] - Get specific category
-export const GET = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const GET = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const categoryId = validateId(params.id, 'Category ID');
 
@@ -34,7 +36,9 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: Ro
 });
 
 // PUT /api/categories/[id] - Update category
-export const PUT = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const PUT = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const categoryId = validateId(params.id, 'Category ID');
 
@@ -53,14 +57,16 @@ export const PUT = withErrorHandling(async (request: NextRequest, { params }: Ro
   // Update the category
   const updatedCategory = await repositories.categories.update(categoryId, {
     ...data,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   });
 
   return successResponse(updatedCategory);
 });
 
 // DELETE /api/categories/[id] - Delete category (soft delete by setting isActive = false)
-export const DELETE = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const DELETE = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const categoryId = validateId(params.id, 'Category ID');
 
@@ -77,7 +83,7 @@ export const DELETE = withErrorHandling(async (request: NextRequest, { params }:
   // For now, we'll just perform a soft delete by setting isActive = false
   await repositories.categories.update(categoryId, {
     isActive: false,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   });
 
   return noContentResponse();

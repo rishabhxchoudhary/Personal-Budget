@@ -18,7 +18,9 @@ interface RouteContext {
 }
 
 // GET /api/budgets/[id]/allocations - List allocations for a budget
-export const GET = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const GET = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const budgetId = validateId(params.id, 'Budget ID');
   const { page, limit } = getPaginationParams(request);
@@ -71,7 +73,9 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: Ro
 });
 
 // POST /api/budgets/[id]/allocations - Create new allocation for a budget
-export const POST = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const POST = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const budgetId = validateId(params.id, 'Budget ID');
 

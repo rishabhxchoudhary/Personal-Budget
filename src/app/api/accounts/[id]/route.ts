@@ -7,7 +7,7 @@ import {
   successResponse,
   noContentResponse,
   validateId,
-  ApiError
+  ApiError,
 } from '@/shared/api/utils';
 import { updateAccountSchema } from '@/shared/api/schemas';
 import { repositories } from '@/shared/repositories/container';
@@ -17,7 +17,9 @@ interface RouteContext {
 }
 
 // GET /api/accounts/[id] - Get specific account
-export const GET = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const GET = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const accountId = validateId(params.id, 'Account ID');
 
@@ -34,7 +36,9 @@ export const GET = withErrorHandling(async (request: NextRequest, { params }: Ro
 });
 
 // PUT /api/accounts/[id] - Update account
-export const PUT = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const PUT = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const accountId = validateId(params.id, 'Account ID');
 
@@ -53,14 +57,16 @@ export const PUT = withErrorHandling(async (request: NextRequest, { params }: Ro
   // Update the account
   const updatedAccount = await repositories.accounts.update(accountId, {
     ...data,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   });
 
   return successResponse(updatedAccount);
 });
 
 // DELETE /api/accounts/[id] - Delete account (soft delete by setting isActive = false)
-export const DELETE = withErrorHandling(async (request: NextRequest, { params }: RouteContext) => {
+export const DELETE = withErrorHandling(async (request: NextRequest, context?: RouteContext) => {
+  if (!context) throw new ApiError('Route context is required', 500);
+  const { params } = context;
   const user = await requireAuth();
   const accountId = validateId(params.id, 'Account ID');
 
@@ -77,7 +83,7 @@ export const DELETE = withErrorHandling(async (request: NextRequest, { params }:
   // For now, we'll just perform a soft delete by setting isActive = false
   await repositories.accounts.update(accountId, {
     isActive: false,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   });
 
   return noContentResponse();
