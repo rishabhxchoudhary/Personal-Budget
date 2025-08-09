@@ -5,46 +5,67 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, RefreshCw, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { AccountCreateModal } from '@/features/accounts/components/AccountCreateModal';
+import { Account } from '@/shared/types/common';
 
 // In a real app, this would come from your API
-const mockAccounts = [
+const mockAccounts: Account[] = [
   {
-    id: 'acc1',
+    accountId: 'acc1',
+    userId: 'user-123',
     name: 'Main Checking',
     type: 'checking',
-    balance: 245678, // $2,456.78
+    balanceMinor: 245678, // $2,456.78
+    currency: 'USD',
+    isActive: true,
     institution: 'Bank of America',
-    lastFour: '4321'
+    lastFour: '4321',
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
-    id: 'acc2',
+    accountId: 'acc2',
+    userId: 'user-123',
     name: 'Savings',
     type: 'savings',
-    balance: 1250000, // $12,500.00
+    balanceMinor: 1250000, // $12,500.00
+    currency: 'USD',
+    isActive: true,
     institution: 'Bank of America',
-    lastFour: '8765'
+    lastFour: '8765',
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
-    id: 'acc3',
+    accountId: 'acc3',
+    userId: 'user-123',
     name: 'Credit Card',
     type: 'credit',
-    balance: -358749, // -$3,587.49
+    balanceMinor: -358749, // -$3,587.49
+    currency: 'USD',
+    isActive: true,
     institution: 'Chase',
-    lastFour: '1234'
+    lastFour: '1234',
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
-    id: 'acc4',
+    accountId: 'acc4',
+    userId: 'user-123',
     name: 'Cash Wallet',
     type: 'cash',
-    balance: 12500, // $125.00
-    institution: null,
-    lastFour: null
-  }
+    balanceMinor: 12500, // $125.00
+    currency: 'USD',
+    isActive: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
 ];
 
 export default function AccountsPage() {
-  const [accounts, setAccounts] = useState(mockAccounts);
+  const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
   const [isLoading, setIsLoading] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Format currency (simple implementation)
   const formatCurrency = (amount: number) => {
@@ -62,18 +83,22 @@ export default function AccountsPage() {
   };
 
   // Calculate total balance across all accounts
-  const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+  const totalBalance = accounts.reduce((sum, account) => sum + account.balanceMinor, 0);
 
   // Calculate stats
   const totalAssets = accounts
-    .filter(acc => acc.balance > 0)
-    .reduce((sum, acc) => sum + acc.balance, 0);
+    .filter((acc) => acc.balanceMinor > 0)
+    .reduce((sum, acc) => sum + acc.balanceMinor, 0);
 
   const totalLiabilities = accounts
-    .filter(acc => acc.balance < 0)
-    .reduce((sum, acc) => sum + acc.balance, 0);
+    .filter((acc) => acc.balanceMinor < 0)
+    .reduce((sum, acc) => sum + acc.balanceMinor, 0);
 
   const netWorth = totalAssets + totalLiabilities; // totalLiabilities is already negative
+
+  const handleAccountCreated = (newAccount: Account) => {
+    setAccounts([...accounts, newAccount]);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -98,7 +123,7 @@ export default function AccountsPage() {
               </>
             )}
           </Button>
-          <Button>
+          <Button onClick={() => setShowCreateModal(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Account
           </Button>
@@ -109,14 +134,10 @@ export default function AccountsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Net Worth
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Net Worth</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(netWorth)}
-            </div>
+            <div className="text-2xl font-bold">{formatCurrency(netWorth)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -164,19 +185,25 @@ export default function AccountsPage() {
               </thead>
               <tbody>
                 {accounts.map((account) => (
-                  <tr key={account.id} className="border-b hover:bg-muted/50">
+                  <tr key={account.accountId} className="border-b hover:bg-muted/50">
                     <td className="p-4 font-medium">{account.name}</td>
                     <td className="p-4 capitalize">{account.type}</td>
                     <td className="p-4">{account.institution || 'N/A'}</td>
-                    <td className={`p-4 text-right font-medium ${account.balance < 0 ? 'text-destructive' : 'text-green-600 dark:text-green-400'}`}>
-                      {formatCurrency(account.balance)}
+                    <td
+                      className={`p-4 text-right font-medium ${account.balanceMinor < 0 ? 'text-destructive' : 'text-green-600 dark:text-green-400'}`}
+                    >
+                      {formatCurrency(account.balanceMinor)}
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2">
                         <Button size="sm" variant="outline" asChild>
-                          <Link href={`/accounts/${account.id}`}>View</Link>
+                          <Link href={`/accounts/${account.accountId}`}>View</Link>
                         </Button>
-                        <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -186,10 +213,10 @@ export default function AccountsPage() {
               </tbody>
               <tfoot>
                 <tr className="bg-muted/50">
-                  <td colSpan={3} className="p-4 font-medium">Total</td>
-                  <td className="p-4 text-right font-bold">
-                    {formatCurrency(totalBalance)}
+                  <td colSpan={3} className="p-4 font-medium">
+                    Total
                   </td>
+                  <td className="p-4 text-right font-bold">{formatCurrency(totalBalance)}</td>
                   <td></td>
                 </tr>
               </tfoot>
@@ -197,6 +224,12 @@ export default function AccountsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <AccountCreateModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onAccountCreated={handleAccountCreated}
+      />
     </div>
   );
 }
