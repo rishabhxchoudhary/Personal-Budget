@@ -10,6 +10,9 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(next-auth|@auth|oauth4webapi|openid-client|node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill)/)',
+  ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/index.{ts,tsx}',
