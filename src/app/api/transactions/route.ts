@@ -1,174 +1,161 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
-import { z } from 'zod';
+import { NextRequest } from 'next/server';
+import {
+  withErrorHandling,
+  requireAuth,
+  requireOwnership,
+  validateRequest,
+  paginatedResponse,
+  createdResponse,
+  getPaginationParams,
+  getQueryParam,
+  ApiError,
+} from '@/shared/api/utils';
+import { createTransactionSchema } from '@/shared/api/schemas';
+import { repositories } from '@/shared/repositories/container';
 
-// Mock database for transactions (in production, this would be DynamoDB)
-let transactions: Array<{
-  id: string;
-  amount: string;
-  date: string;
-  category: string;
-  type: 'income' | 'expense';
-  note?: string;
-  userId: string;
-  createdAt: string;
-}> = [];
+// GET /api/transactions - List user's transactions with optional filtering
+export const GET = withErrorHandling(async (request: NextRequest) => {
+  const user = await requireAuth();
+  const { page, limit } = getPaginationParams(request);
 
-// Transaction validation schema
-const createTransactionSchema = z.object({
-  amount: z.string().min(1),
-  date: z.string().min(1),
-  category: z.string().min(1),
-  type: z.enum(['income', 'expense']),
-  note: z.string().optional(),
-  userId: z.string().min(1),
+  // Parse query parameters
+  const type = getQueryParam(request, 'type');
+  const accountId = getQueryParam(request, 'accountId');
+  const categoryId = getQueryParam(request, 'categoryId');
+  const status = getQueryParam(request, 'status');
+  const startDate = getQueryParam(request, 'startDate');
+  const endDate = getQueryParam(request, 'endDate');
+
+  // Get user's transactions
+  let transactions = await repositories.transactions.findByUserId(user.id);
+
+  // Apply filters
+  if (type) {
+    transactions = transactions.filter((transaction) => transaction.type === type);
+  }
+
+  if (accountId) {
+    transactions = transactions.filter((transaction) => transaction.accountId === accountId);
+  }
+
+  if (status) {
+    transactions = transactions.filter((transaction) => transaction.status === status);
+  }
+
+  if (categoryId) {
+    // Filter by category in splits
+    transactions = transactions.filter((transaction) =>
+      transaction.splits.some((split) => split.categoryId === categoryId),
+    );
+  }
+
+  if (startDate) {
+    const start = new Date(startDate);
+    transactions = transactions.filter((transaction) => new Date(transaction.date) >= start);
+  }
+
+  if (endDate) {
+    const end = new Date(endDate);
+    transactions = transactions.filter((transaction) => new Date(transaction.date) <= end);
+  }
+
+  // Sort by date descending (newest first)
+  transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  // Get account and category details for each transaction
+  const transactionsWithDetails = await Promise.all(
+    transactions.map(async (transaction) => {
+      const account = await repositories.accounts.findById(transaction.accountId);
+
+      // Get category details for each split
+      const splitsWithCategories = await Promise.all(
+        transaction.splits.map(async (split) => {
+          const category = await repositories.categories.findById(split.categoryId);
+          return {
+            ...split,
+            category: category
+              ? {
+                  categoryId: category.categoryId,
+                  name: category.name,
+                  type: category.type,
+                  icon: category.icon,
+                  color: category.color,
+                }
+              : null,
+          };
+        }),
+      );
+
+      return {
+        ...transaction,
+        account: account
+          ? {
+              accountId: account.accountId,
+              name: account.name,
+              type: account.type,
+              currency: account.currency,
+            }
+          : null,
+        splits: splitsWithCategories,
+      };
+    }),
+  );
+
+  // Apply pagination
+  const total = transactionsWithDetails.length;
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedTransactions = transactionsWithDetails.slice(startIndex, endIndex);
+
+  return paginatedResponse(paginatedTransactions, page, limit, total);
 });
 
-export async function GET(request: NextRequest) {
-  try {
-    // Check authentication
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Please sign in to view your transactions' },
-        { status: 401 }
-      );
-    }
+// POST /api/transactions - Create new transaction
+export const POST = withErrorHandling(async (request: NextRequest) => {
+  const user = await requireAuth();
 
-    // Get query parameters
-    const searchParams = request.nextUrl.searchParams;
-    const type = searchParams.get('type');
-    const userId = searchParams.get('userId') || session.user.id;
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '10', 10);
+  // Validate request body
+  const data = await validateRequest(request, createTransactionSchema);
 
-    // Ensure user can only access their own transactions
-    if (userId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
-
-    // Filter transactions by userId and type
-    let filteredTransactions = transactions.filter((t) => t.userId === userId);
-
-    if (type && type !== 'all') {
-      filteredTransactions = filteredTransactions.filter((t) => t.type === type);
-    }
-
-    // Sort by date descending (newest first)
-    filteredTransactions.sort((a, b) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-
-    // Apply pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex);
-
-    return NextResponse.json({
-      transactions: paginatedTransactions,
-      totalCount: filteredTransactions.length,
-      page,
-      limit,
-      totalPages: Math.ceil(filteredTransactions.length / limit),
-    });
-  } catch (error) {
-    console.error('Error fetching transactions:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  // Verify the account exists and user owns it
+  const account = await repositories.accounts.findById(data.accountId);
+  if (!account) {
+    throw new ApiError('Account not found', 404);
   }
-}
+  requireOwnership(account.userId, user.id);
 
-export async function POST(request: NextRequest) {
-  try {
-    // Check authentication
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Please sign in to add transactions' },
-        { status: 401 }
-      );
+  // Verify all categories exist and user owns them if splits provided
+  if (data.splits && data.splits.length > 0) {
+    for (const split of data.splits) {
+      const category = await repositories.categories.findById(split.categoryId);
+      if (!category) {
+        throw new ApiError(`Category ${split.categoryId} not found`, 404);
+      }
+      requireOwnership(category.userId, user.id);
     }
 
-    // Parse request body
-    const body = await request.json();
-
-    // Validate request data
-    const validationResult = createTransactionSchema.safeParse(body);
-    if (!validationResult.success) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+    // Verify splits add up to transaction amount
+    const totalSplitAmount = data.splits.reduce((sum, split) => sum + split.amountMinor, 0);
+    if (totalSplitAmount !== data.amountMinor) {
+      throw new ApiError('Split amounts must equal transaction amount', 400);
     }
-
-    const data = validationResult.data;
-
-    // Ensure userId matches authenticated user
-    if (data.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
-
-    // Create new transaction
-    const newTransaction = {
-      id: Math.random().toString(36).substr(2, 9),
-      amount: data.amount,
-      date: data.date,
-      category: data.category,
-      type: data.type,
-      note: data.note,
-      userId: data.userId,
-      createdAt: new Date().toISOString(),
-    };
-
-    // Add to mock database (in production, save to DynamoDB)
-    transactions.unshift(newTransaction);
-
-    // Return successful response
-    return NextResponse.json(newTransaction, { status: 201 });
-  } catch (error) {
-    console.error('Error creating transaction:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
   }
-}
 
-// Helper function to reset transactions (for testing)
-export function resetTransactions() {
-  transactions = [];
-}
+  // Create transaction with user ID and proper splits
+  const transactionInput = {
+    userId: user.id,
+    accountId: data.accountId,
+    date: new Date(data.date),
+    amountMinor: data.amountMinor,
+    type: data.type,
+    status: data.status || 'pending',
+    counterparty: data.counterparty,
+    description: data.description,
+    splits: data.splits || [],
+    recurringTransactionId: data.recurringTransactionId,
+  };
 
-// Initialize with some sample data for development
-if (process.env.NODE_ENV === 'development') {
-  transactions = [
-    {
-      id: '1',
-      amount: '1000',
-      date: '2025-01-01',
-      category: 'general',
-      type: 'income',
-      note: 'January salary',
-      userId: 'dev-user-id',
-      createdAt: '2025-01-01T10:00:00.000Z',
-    },
-    {
-      id: '2',
-      amount: '250',
-      date: '2025-01-02',
-      category: 'general',
-      type: 'expense',
-      note: 'Groceries',
-      userId: 'dev-user-id',
-      createdAt: '2025-01-02T14:30:00.000Z',
-    },
-  ];
-}
+  const transaction = await repositories.transactions.create(transactionInput);
+
+  return createdResponse(transaction);
+});
