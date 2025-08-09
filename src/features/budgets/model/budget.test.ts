@@ -149,6 +149,11 @@ describe('BudgetRepository', () => {
       expect(found?.month).toBe('2024-01');
     });
 
+    it('should return null if no budget is found', async () => {
+      const found = await repository.findByUserIdAndMonth('non-existent-user', '2024-01');
+      expect(found).toBeNull();
+    });
+
     it('should return null when budget not found', async () => {
       const result = await repository.findByUserIdAndMonth('nonexistent', '2024-01');
       expect(result).toBeNull();

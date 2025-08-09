@@ -12,9 +12,7 @@ export class BudgetRepository
     return entity.budgetId;
   }
 
-  async create(
-    input: Omit<Budget, 'budgetId' | 'createdAt' | 'updatedAt'>,
-  ): Promise<Budget> {
+  async create(input: Omit<Budget, 'budgetId' | 'createdAt' | 'updatedAt'>): Promise<Budget> {
     // Validate input
     this.validateBudgetInput(input);
 
@@ -22,11 +20,12 @@ export class BudgetRepository
     await this.checkDuplicateBudget(input.userId, input.month, input.status);
 
     // Create budget with generated ID
+    const now = new Date();
     const budget: Budget = {
       ...input,
       budgetId: uuidv4(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
 
     return super.create(budget);
@@ -35,9 +34,7 @@ export class BudgetRepository
   async findByUserIdAndMonth(userId: string, month: string): Promise<Budget | null> {
     const budgets = await this.findAll();
 
-    const found = budgets.find(
-      (b) => b.userId === userId && b.month === month
-    );
+    const found = budgets.find((b) => b.userId === userId && b.month === month);
 
     return found || null;
   }
@@ -52,10 +49,7 @@ export class BudgetRepository
     return userBudgets;
   }
 
-  async update(
-    budgetId: string,
-    updates: Partial<Budget>,
-  ): Promise<Budget> {
+  async update(budgetId: string, updates: Partial<Budget>): Promise<Budget> {
     const existing = await this.findById(budgetId);
     if (!existing) {
       throw new BusinessError(`Budget with id ${budgetId} not found`, 'BUDGET_NOT_FOUND');
@@ -81,18 +75,12 @@ export class BudgetRepository
   private validateBudgetInput(input: Omit<Budget, 'budgetId' | 'createdAt' | 'updatedAt'>): void {
     // Validate month format
     if (!isValidMonth(input.month)) {
-      throw new BusinessError(
-        'Invalid month format. Use YYYY-MM',
-        'INVALID_MONTH_FORMAT'
-      );
+      throw new BusinessError('Invalid month format. Use YYYY-MM', 'INVALID_MONTH_FORMAT');
     }
 
     // Check if month is in future
     if (isMonthInFuture(input.month)) {
-      throw new BusinessError(
-        'Cannot create budget for future months',
-        'FUTURE_MONTH_NOT_ALLOWED'
-      );
+      throw new BusinessError('Cannot create budget for future months', 'FUTURE_MONTH_NOT_ALLOWED');
     }
 
     // Validate income amounts
@@ -103,40 +91,28 @@ export class BudgetRepository
     // Validate status
     const validStatuses: Budget['status'][] = ['draft', 'active', 'closed'];
     if (!validStatuses.includes(input.status)) {
-      throw new BusinessError(
-        'Invalid budget status',
-        'INVALID_BUDGET_STATUS'
-      );
+      throw new BusinessError('Invalid budget status', 'INVALID_BUDGET_STATUS');
     }
   }
 
   private validateIncome(amount: number): void {
     if (amount < 0) {
-      throw new BusinessError(
-        'Income amounts must be non-negative',
-        'NEGATIVE_INCOME_NOT_ALLOWED'
-      );
+      throw new BusinessError('Income amounts must be non-negative', 'NEGATIVE_INCOME_NOT_ALLOWED');
     }
 
     if (!Number.isFinite(amount)) {
-      throw new BusinessError(
-        'Income amount must be a valid number',
-        'INVALID_INCOME_AMOUNT'
-      );
+      throw new BusinessError('Income amount must be a valid number', 'INVALID_INCOME_AMOUNT');
     }
 
     if (amount > Number.MAX_SAFE_INTEGER) {
-      throw new BusinessError(
-        'Income amount exceeds maximum allowed value',
-        'INCOME_TOO_LARGE'
-      );
+      throw new BusinessError('Income amount exceeds maximum allowed value', 'INCOME_TOO_LARGE');
     }
   }
 
   private async checkDuplicateBudget(
     userId: string,
     month: string,
-    status: Budget['status']
+    status: Budget['status'],
   ): Promise<void> {
     const existing = await this.findByUserIdAndMonth(userId, month);
 
@@ -145,7 +121,7 @@ export class BudgetRepository
     if (existing.status === 'active' && status === 'active') {
       throw new BusinessError(
         'Only one active budget allowed per month',
-        'DUPLICATE_ACTIVE_BUDGET'
+        'DUPLICATE_ACTIVE_BUDGET',
       );
     }
   }
@@ -155,10 +131,7 @@ export class BudgetRepository
 
     for (const field of immutableFields) {
       if (field in updates) {
-        throw new BusinessError(
-          `Cannot update ${field}`,
-          'IMMUTABLE_FIELD_UPDATE'
-        );
+        throw new BusinessError(`Cannot update ${field}`, 'IMMUTABLE_FIELD_UPDATE');
       }
     }
   }
